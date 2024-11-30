@@ -1,13 +1,14 @@
 import express from "express";
 import sql from "mssql";
-import db from "./db.js";
+import bcrypt from "bcrypt";
+import config from "./config.js";
 
 const router = express.Router();
 
 router.post("/user", async (req, res) => {
-    const { name, email, password } = req.body;
+    const { username, email, password, notifications } = req.body;
 
-    if (!name || !email || !password) {
+    if (!username || !email || !password || !notifications) {
         return res.status(400).send("Name, email, and password are required.");
     }
     
@@ -15,13 +16,14 @@ router.post("/user", async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        let pool = await sql.connect(db);
+        let pool = await sql.connect(config);
 
         const result = await pool.request()
-            .input("name", sql.VarChar, req.body.name)
+            .input("username", sql.VarChar, req.body.username)
             .input("email", sql.VarChar, req.body.email)
-            .input("password", sql.VarChar, req.body.hashedPassword)
-            .query("INSERT INTO users (name, email) VALUES (@name, @email)");
+            .input("password", sql.VarChar, hashedPassword)
+            .input("notifications", sql.Bit, req.body.notifications)
+            .query("INSERT INTO users (username, email, password, notifications) VALUES (@username, @email, @password, @notifications)");
 
         res.status(201).json({message: "User created successfully."});
 
@@ -32,4 +34,4 @@ router.post("/user", async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

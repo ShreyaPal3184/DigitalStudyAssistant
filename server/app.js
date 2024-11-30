@@ -10,8 +10,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
 
-app.get("/user", userRoutes.createUser);
+app.use("/api", userRoutes);
 
-app.listen(port, () => {
+app.listen(PORT, () => {
     console.log(`App running on port ${PORT}.`);
   });
