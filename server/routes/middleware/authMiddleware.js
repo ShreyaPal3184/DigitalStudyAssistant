@@ -39,6 +39,7 @@ dotenv.config();
 
 export const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization']; // Getting Authorization header
+   // console.log(authHeader);
 
     if (authHeader) {
         const token = authHeader.split(' ')[1]; // Get the token part after "Bearer"
@@ -48,6 +49,8 @@ export const authenticateToken = (req, res, next) => {
                 return res.status(403).json({ message: "Invalid or expired token" });
             }
             req.user = user; // Attach the decoded user information to the request object
+     //       console.log(user);
+            
             next(); // Proceed to the next middleware or route handler
         });
     } else {

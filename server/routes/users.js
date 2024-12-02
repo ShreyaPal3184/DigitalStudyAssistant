@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import config from "./config.js";
 import dotenv from "dotenv";
-import { authenticateToken } from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
