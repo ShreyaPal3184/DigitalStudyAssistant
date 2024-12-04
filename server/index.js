@@ -7,6 +7,7 @@ import taskRoutes from "./routes/tasks.js";
 import sessionRoutes from "./routes/sessions.js";
 import studyTechRoutes from "./routes/studyTechniques.js";
 import translateRoutes from "./routes/nlp/translator.js";
+import languageRoutes from "./routes/nlp/language.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -22,11 +23,15 @@ app.use("/api/task", taskRoutes);
 app.use("/api/session", sessionRoutes);
 app.use("/api/studytechniques", studyTechRoutes);
 app.use("/api", translateRoutes);
+app.use("/api", languageRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(PORT, () => {
+/*app.listen(PORT, () => {
     console.log(`App running on port ${PORT}.`);
-  });
+  });*/
+
+
+export default app;

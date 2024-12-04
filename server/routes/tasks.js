@@ -1,7 +1,7 @@
 import express from "express";
 import sql from "mssql";
 import config from "./config.js";
-import { authenticateToken } from "./middleware/authMiddleware.js";
+import { authenticateToken } from "../middleware/authMiddleware.js";
 import tasksController from "../controller/tasks.controller.js";
 
 const router = express.Router();

@@ -59,7 +59,11 @@ const register = ("/register", async (req, res) => {
 const login = ("/login", async (req, res) => {
     const { email, password } = req.body;
 
-    console.log(email, password);
+    if(!email || !password) {
+        return res.status(401).send("Missing entries.");
+    }    
+
+    //console.log(email, password);
     
 
     try {
@@ -70,40 +74,26 @@ const login = ("/login", async (req, res) => {
             .query("SELECT * FROM users WHERE email = @email");
         
         if (result.recordset.length === 0) {
-            return res.status(400).send("User not found.");
+            return res.status(401).send("User not found.");
         } 
 
         const user = result.recordset[0];
         const validPassword = await bcrypt.compare(password, user.password);
     
         if (!validPassword) {
-            return res.status(400).send("Unauthorized access.");
+            return res.status(401).send("Unauthorized access.");
         }
-
-        /*const token = generateToken(user.id);
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // Set secure flag in production
-            maxAge: 3600000 // 1 hour
-        });*/
 
         const tokenData = {
             userId: user.id
         }
         const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {expiresIn: '1d'});
-        console.log(token);
+        //console.log(token);
         
-
-        /*user = {
-            _id: user._id,
-            username: user.name,
-            email: user.email,
-        }*/
-
         return res.status(200).cookie("token", token, {maxAge: 1*24*60*60*1000, httpOnly: true, samSite: 'strict'}).json({
-            message: `Welcome back ${user.name}`,
-            success: true
+            message: 'Login successful',
+            success: true,
+            token: token
         })
         
     } catch (err) {
