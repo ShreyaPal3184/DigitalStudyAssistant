@@ -72,14 +72,14 @@ router.post("/login", async (req, res) => {
             .query("SELECT * FROM users WHERE email = @email");
         
         if (result.recordset.length === 0) {
-            return res.status(400).send("User not found.");
+            return res.status(404).send("User not found.");
         } 
 
         const user = result.recordset[0];
         const validPassword = await bcrypt.compare(password, user.password);
     
         if (!validPassword) {
-            return res.status(400).send("Unauthorized access.");
+            return res.status(401).send("Unauthorized access.");
         }
 
         /*const token = generateToken(user.id);
@@ -103,10 +103,14 @@ router.post("/login", async (req, res) => {
             email: user.email,
         }*/
 
-        return res.status(200).cookie("token", token, {maxAge: 1*24*60*60*1000, httpOnly: true, samSite: 'strict'}).json({
-            message: `Welcome back ${user.name}`,
-            success: true
-        })
+            return res.status(200)
+            .cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
+            .json({
+              message: `Welcome back ${user.name}`,
+              success: true,
+              token: token // Add token to response body to check on the client side
+            });
+          
         
     } catch (err) {
         res.status(500);
