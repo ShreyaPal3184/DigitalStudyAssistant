@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,15 +6,48 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
+  FlatList,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import { getTasks } from "../services/taskService"; // Import task fetching API
 
 const { width } = Dimensions.get("window");
 
 const HomeScreen = () => {
-  const userName = "Prithvi"; // Replace with dynamic user data if needed
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const userName = "Prithvi"; // Replace with dynamic user data
   const streakDays = 7; // Example streak value
+  const navigation = useNavigation();
+
+  // Fetch tasks from the backend
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const fetchedTasks = await getTasks();
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  // Navigate to Timer screen
+  const handleStartStudying = () => {
+    navigation.navigate("Timer");
+  };
+
+  // Navigate to AddTask screen
+  const handleAddTask = () => {
+    navigation.navigate("AddTask");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,27 +68,37 @@ const HomeScreen = () => {
 
       {/* Study Streak Bar */}
       <View style={styles.streakBar}>
-        <Text style={styles.streakText}>
-          🔥 Study Streak: {streakDays} days
-        </Text>
+        <Text style={styles.streakText}>🔥 Study Streak: {streakDays} days</Text>
       </View>
 
       {/* Task Bar */}
       <View style={styles.taskBar}>
-        <Text style={styles.taskTitle}>Tasks</Text>
-        <TouchableOpacity style={styles.taskItem}>
-          <Icon name="note-outline" size={24} color="#4F8EF7" />
-          <Text style={styles.taskText}>Complete Science Notes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.taskItem}>
-          <Icon name="check-circle-outline" size={24} color="#4F8EF7" />
-          <Text style={styles.taskText}>Finish History Assignment</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.taskItem}>
-          <Icon name="checkbox-multiple-outline" size={24} color="#4F8EF7" />
-          <Text style={styles.taskText}>Prepare for Math Quiz</Text>
-        </TouchableOpacity>
+        <View style={styles.taskHeader}>
+          <Text style={styles.taskTitle}>Tasks</Text>
+          <TouchableOpacity onPress={handleAddTask}>
+            <Icon name="plus-circle" size={28} color="#4F8EF7" />
+          </TouchableOpacity>
+        </View>
+        {loading ? (
+          <Text>Loading tasks...</Text>
+        ) : (
+          <FlatList
+            data={tasks}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.taskItem}>
+                <Icon name="note-outline" size={24} color="#4F8EF7" />
+                <Text style={styles.taskText}>{item.title}</Text>
+              </View>
+            )}
+          />
+        )}
       </View>
+
+      {/* Start Studying Button */}
+      <TouchableOpacity style={styles.startButton} onPress={handleStartStudying}>
+        <Text style={styles.startButtonText}>Start Studying</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -68,11 +111,12 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   gradient: {
-    width: 300,
+    width: 250,
     height: 50,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 50,
+    marginTop: 20,
   },
   header: {
     flexDirection: "row",
@@ -81,7 +125,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   welcomeText: {
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: "bold",
     color: "#0B1215",
   },
@@ -106,17 +150,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     padding: 15,
     borderRadius: 10,
-    elevation: 2, // For Android shadow
-    shadowColor: "#000", // For iOS shadow
+    elevation: 2,
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
+    marginBottom: 20,
+  },
+  taskHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
   taskTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#4F8EF7",
-    marginBottom: 10,
   },
   taskItem: {
     flexDirection: "row",
@@ -130,6 +180,20 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "#333",
   },
-});
+  startButton: {
+    backgroundColor: "#4F8EF7",
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 20,
+    width: "90%",
+    alignSelf: "center",
+  },
+  startButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+}); 
 
 export default HomeScreen;
