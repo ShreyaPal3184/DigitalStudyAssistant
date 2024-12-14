@@ -1,24 +1,29 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
-import HomeScreen from './screens/HomeScreen';
-import TimerScreen from './screens/TimerScreen';
-import AddTaskScreen from './screens/AddTaskScreen';
+import React, { useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import LoginScreen from "./screens/LoginScreen";
+import RegisterScreen from "./screens/RegisterScreen";
+import Tabs from "./components/Tabs"; // Import your Tabs component
 
 const Stack = createStackNavigator();
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to manage login status
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
+        {/* Show Login Screen or Tabs based on the login state */}
+        <Stack.Screen name="Login">
+          {(props) => (
+            <LoginScreen {...props} setIsLoggedIn={setIsLoggedIn} />
+          )}
+        </Stack.Screen>
+
         <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Timer" component={TimerScreen} />
-        <Stack.Screen name="AddTask" component={AddTaskScreen} />
+        {/* Show Tabs only if the user is logged in */}
+        {isLoggedIn && <Stack.Screen name="Tabs" component={Tabs} />}
       </Stack.Navigator>
     </NavigationContainer>
-  ); 
+  );
 }

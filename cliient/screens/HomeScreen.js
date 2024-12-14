@@ -4,101 +4,153 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   SafeAreaView,
   FlatList,
+  Dimensions,
+  ScrollView, // Import ScrollView
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
-import { getTasks } from "../services/taskService"; // Import task fetching API
+import TopMenu from "../components/TopMenu.js";
+import { useTailwind } from "tailwind-rn";
 
-const { width } = Dimensions.get("window");
+// Get the screen dimensions for responsiveness
+const { width, height } = Dimensions.get("window");
 
 const HomeScreen = () => {
+  const tailwind = useTailwind();
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [loadingSessions, setLoadingSessions] = useState(true);
   const userName = "Prithvi"; // Replace with dynamic user data
   const streakDays = 7; // Example streak value
   const navigation = useNavigation();
 
-  // Fetch tasks from the backend
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const fetchedTasks = await getTasks();
-        setTasks(fetchedTasks);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => {}, []);
 
-    fetchTasks();
-  }, []);
-
-  // Navigate to Timer screen
+  // Handle navigation
   const handleStartStudying = () => {
     navigation.navigate("Timer");
   };
 
-  // Navigate to AddTask screen
   const handleAddTask = () => {
     navigation.navigate("AddTask");
   };
 
+  const handleCreateSession = () => {
+    navigation.navigate("CreateSession");
+  };
+
+  const handleLogout = () => {
+    navigation.navigate("Login");
+  };
+
+  const handleViewSessionDetails = (sessionId) => {
+    navigation.navigate("SessionDetails", { sessionId });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <LinearGradient
-          colors={["#E1306C", "#F77737", "#FDCB5D", "#8A3AB9", "#4C68D7"]}
-          style={styles.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Text style={styles.welcomeText}>Welcome, {userName}!</Text>
-        </LinearGradient>
-        <TouchableOpacity style={styles.avatarButton}>
-          <Icon name="account-circle" size={40} color="#4F8EF7" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Study Streak Bar */}
-      <View style={styles.streakBar}>
-        <Text style={styles.streakText}>🔥 Study Streak: {streakDays} days</Text>
-      </View>
-
-      {/* Task Bar */}
-      <View style={styles.taskBar}>
-        <View style={styles.taskHeader}>
-          <Text style={styles.taskTitle}>Tasks</Text>
-          <TouchableOpacity onPress={handleAddTask}>
-            <Icon name="plus-circle" size={28} color="#4F8EF7" />
-          </TouchableOpacity>
+      {/* Make the whole content scrollable */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.welcomeText}>
+              Welcome, <Text style={styles.name}>{userName}!</Text>
+            </Text>
+          </View>
+          <TopMenu style={styles.menu} />
         </View>
-        {loading ? (
-          <Text>Loading tasks...</Text>
-        ) : (
-          <FlatList
-            data={tasks}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.taskItem}>
-                <Icon name="note-outline" size={24} color="#4F8EF7" />
-                <Text style={styles.taskText}>{item.title}</Text>
-              </View>
-            )}
-          />
-        )}
-      </View>
 
-      {/* Start Studying Button */}
-      <TouchableOpacity style={styles.startButton} onPress={handleStartStudying}>
-        <Text style={styles.startButtonText}>Start Studying</Text>
-      </TouchableOpacity>
+        {/* Digital Tracker Section */}
+        <View style={styles.digitalTracker}>
+          <Text style={styles.trackerTitle}>📊 Digital Tracker</Text>
+          <View style={styles.trackerContent}>
+            <Text style={styles.trackerText}>Logged-in Days: 15</Text>
+            <Text style={styles.trackerText}>Avg Task Completion: 85%</Text>
+            <Text style={styles.trackerText}>Total Study Sessions: 22</Text>
+          </View>
+        </View>
+
+        {/* Tasks Section */}
+        <View style={styles.taskBar}>
+          <View style={styles.taskHeader}>
+            <Text style={styles.taskTitle}>Tasks</Text>
+            <TouchableOpacity onPress={handleAddTask}>
+              <Icon name="plus-circle" size={28} color="#4F8EF7" />
+            </TouchableOpacity>
+          </View>
+          {loadingTasks ? (
+            <Text>Loading tasks...</Text>
+          ) : (
+            <FlatList
+              data={tasks}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.taskItem}>
+                  <Icon name="note-outline" size={24} color="#4F8EF7" />
+                  <Text style={styles.taskText}>{item.title}</Text>
+                </View>
+              )}
+            />
+          )}
+        </View>
+
+        {/* Active Sessions Section */}
+        <View style={styles.sessionBar}>
+          <View style={styles.sessionHeader}>
+            <Text style={styles.sessionTitle}>Active Sessions</Text>
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={styles.logoutButton}
+            >
+              <Icon name="logout" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          {loadingSessions ? (
+            <Text>Loading sessions...</Text>
+          ) : (
+            <FlatList
+              data={sessions}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.sessionItem}
+                  onPress={() => handleViewSessionDetails(item.id)}
+                >
+                  <Text style={styles.sessionText}>
+                    {item.subject} - {item.status}
+                  </Text>
+                  <Text style={styles.sessionText}>
+                    {item.start_time} - {item.end_time}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
+
+        {/* Start Studying Button */}
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={handleStartStudying}
+        >
+          <Text style={styles.startButtonText}>Start Studying</Text>
+        </TouchableOpacity>
+
+        {/* Create New Session Button */}
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={handleCreateSession}
+        >
+          <Text style={styles.createButtonText}>Create New Session</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -107,39 +159,104 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 20,
-    margin: 5,
+    padding: width * 0.01, // 5% padding for responsiveness
+    margin: width * 0.009, // Adjust margin for different screen sizes
+    justifyContent: "space-between",
   },
-  gradient: {
-    width: 250,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 50,
-    marginTop: 20,
+  scrollContent: {
+    paddingBottom: 20, // To ensure there is some space at the bottom when scrolling
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop: 10,
+    width: "100%",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  menu: {
+    marginLeft: 10, // Adjust margin as needed
+    backgroundColor: "#bbb",
+    zIndex: 10,
   },
   welcomeText: {
-    fontSize: 25,
+    fontSize: width * 0.06, // Dynamic font size based on screen width
     fontWeight: "bold",
     color: "#0B1215",
   },
-  avatarButton: {
-    padding: 5,
-    borderRadius: 20,
-    backgroundColor: "#f0f0f0",
+  name: {
+    fontSize: width * 0.08, // Dynamic font size based on screen width
+    fontWeight: "bold",
+    color: "#FF3E4D",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
-  streakBar: {
-    backgroundColor: "#FFD700",
-    padding: 15,
-    borderRadius: 10,
+  // streakBar: {
+  //   backgroundColor: "#53E0BC",
+  //   padding: 15,
+  //   borderRadius: 10,
+  //   marginBottom: 20,
+  //   height: height * 0.2, // Dynamic height for responsiveness
+  //   shadowColor: "75FDF0",
+  //   shadowOffset: {
+  //     width: 0,
+  //     height: 10,
+  //   },
+  //   shadowOpacity: 0.25,
+  //   shadowRadius: 3.5,
+  //   elevation: 5,
+  // },
+  digitalTracker: {
+    flex:1,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    backgroundColor: "#F3F3F3", // Light background
+    borderRadius: 15,
+    padding: 20,
     marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: -5,
+      height: -5, // Create inward shadow
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: "#E0E0E0", // Border to enhance "carved" effect
   },
+  trackerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  trackerContent: {
+    
+    backgroundColor: "#E6E6E6",
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: "#FFF",
+    shadowOffset: {
+      width: 3,
+      height: 3, // Inner highlights
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+  },
+  trackerText: {
+    fontSize: 16,
+    color: "#555",
+    marginVertical: 5,
+    textAlign: "center",
+  },  
   streakText: {
     fontSize: 18,
     fontWeight: "600",
@@ -152,10 +269,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 2,
     shadowColor: "#000",
+    shadowOffset: {
+      width: -5,
+      height: -5, // Create inward shadow
+    },
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: "#E0E0E0", // Border to enhance "carved" effect
     marginBottom: 20,
+    height: height * 0.2, // Dynamic height for responsiveness
   },
   taskHeader: {
     flexDirection: "row",
@@ -180,13 +304,62 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "#333",
   },
+  sessionBar: {
+    backgroundColor: "#f9f9f9",
+    padding: 15,
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    marginBottom: 20,
+    height: height * 0.2, // Dynamic height for responsiveness,
+    shadowColor: "75FDF0",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+  sessionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  sessionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#4F8EF7",
+  },
+  sessionItem: {
+    backgroundColor: "#f0f0f0",
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  sessionText: {
+    fontSize: 16,
+    color: "#333",
+  },
   startButton: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: "#4CAF50",
     padding: 15,
     borderRadius: 8,
     marginTop: 20,
     width: "90%",
     alignSelf: "center",
+    shadowColor: "75FDF0",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
   },
   startButtonText: {
     color: "#fff",
@@ -194,6 +367,39 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-}); 
+  createButton: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: "center",
+    width: "90%",
+    alignSelf: "center",
+  },
+  createButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+    fontWeight: "bold",
+    shadowColor: "75FDF0",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+  shadow: {
+    shadowColor: "75FDF0",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+});
 
 export default HomeScreen;
