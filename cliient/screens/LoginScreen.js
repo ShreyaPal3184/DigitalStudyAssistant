@@ -20,7 +20,7 @@ import { USER_API_END_POINT } from "../utils/constant";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // For storing token
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, setIsLoggedIn }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,20 +30,20 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       // Send the login request to the server
       const response = await axios.post(`${USER_API_END_POINT}/login`, { email, password }, {
         withCredentials: true, // This helps send cookies if needed
       });
-  
+
       console.log("Response data:", response.data);  // Log the response to check if the token is returned
-  
+
       if (response.data.success) {
         Alert.alert('Login Successful', response.data.message);
-  
+
         // Store the JWT token from the response in AsyncStorage
         const token = response.data.token;
         if (token) {
@@ -52,18 +52,19 @@ const LoginScreen = ({ navigation }) => {
         } else {
           Alert.alert('Error', 'Token is missing in the response.');
         }
-  
-        navigation.navigate('Home'); // Navigate to the Home screen after successful login
+
+        // Set logged-in state to true and navigate to Tabs
+        setIsLoggedIn(true);
+        navigation.replace('Tabs'); // Navigate to Tabs after successful login
       } else {
         Alert.alert('Login Failed', response.data.message);
       }
     } catch (error) {
-      Alert.alert('Error hhe'|| 'An error occurred during login');
+      Alert.alert('Error', 'An error occurred during login');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <SafeAreaView style={styles.container}>
