@@ -11,9 +11,7 @@ const BlobsList = () => {
   useEffect(() => {
     const fetchBlobs = async () => {
       try {
-        // Replace with your API endpoint
-        // const response = await axios.get("https://dsasp-api.azurewebsites.net/api/resource/get");
-        const response = await axios.get("http://localhost:8080/api/resource/get");
+        const response = await axios.get("https://dsasp-api.azurewebsites.net/api/resource/get");
         setBlobs(response.data);
         setLoading(false);
       } catch (err) {
@@ -26,19 +24,22 @@ const BlobsList = () => {
   }, []);
 
   const handleFileClick = (fileUrl: string) => {
-    // Opens the file in the default browser or app
     Linking.openURL(fileUrl).catch((err) => console.error("Error opening URL: ", err));
   };
 
-  const renderBlobItem = ({ item }: { item: { filename: string; metadata?: { fileUrl?: string }; user: { username: string } } }) => (
+  const renderBlobItem = ({ item }: { item: { filename: string; metadata?: { fileUrl?: string; description?: string }; user: { username: string } } }) => (
     <TouchableOpacity
       style={styles.blobItem}
-      onPress={() => handleFileClick(item.metadata?.fileUrl || "")} // Pass file URL to open
+      onPress={() => handleFileClick(item.metadata?.fileUrl || "")}
     >
-      <Text style={styles.blobName}>{item.filename}</Text>
-      {item.user && (
-        <Text style={styles.metadata}>Owner: {item.user.username || "Unknown"}</Text>
-      )}
+      <View style={styles.fileIcon}>
+        <Text style={styles.fileIconText}>📄</Text>
+      </View>
+      <View style={styles.fileDetails}>
+        <Text style={styles.blobName}>{item.filename}</Text>
+        {item.user && <Text style={styles.metadata}>Owner: {item.user.username || "Unknown"}</Text>}
+        {item.metadata?.description && <Text style={styles.metadata}>Description: {item.metadata.description}</Text>}
+      </View>
     </TouchableOpacity>
   );
 
@@ -61,7 +62,7 @@ const BlobsList = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Blob List</Text>
+      <Text style={styles.header}>Resources</Text>
       <FlatList
         data={blobs}
         keyExtractor={(item) => item.filename}
@@ -88,6 +89,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   blobItem: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#fff",
     padding: 15,
     marginBottom: 10,
@@ -96,14 +99,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
+    borderLeftWidth: 5,
+    borderLeftColor: "#007BFF",
+  },
+  fileIcon: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#e0f7ff",
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  fileIconText: {
+    fontSize: 20,
+    color: "#007BFF",
+  },
+  fileDetails: {
+    flex: 1,
   },
   blobName: {
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 5,
   },
   metadata: {
-    marginTop: 5,
     color: "#555",
+    fontSize: 14,
   },
   loadingContainer: {
     flex: 1,
