@@ -12,7 +12,7 @@ const addSession = ("/add", authenticateToken, async (req, res) => {
     if (!subject || !start_time || !end_time || !status || reminders === undefined  ) {
         return res.status(400).send("Missing entries");
     }
-
+ 
     try {
         let pool = await sql.connect(config);
 
