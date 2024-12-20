@@ -60,4 +60,36 @@ const rejectFriendship = ("/reject", authenticateToken, async (req, res) => {
     }
 });
 
-export default { addFriendship, acceptFriendship };
+const getFriends = ("/get", authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input("userId", sql.Int, userId)
+            .query("SELECT * FROM friendships WHERE userId = @userId AND status = 1");
+
+        res.status(200).json(result.recordset);
+    } catch(err) {
+        res.send(err);
+        console.log(err);
+    }
+});
+
+const getRequests = ("/requests", authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input("userId", sql.Int, userId)
+            .query("SELECT * FROM friendships WHERE friendId = @userId AND status = 0");
+
+        res.status(200).json(result.recordset);
+    } catch(err) {
+        res.send(err);
+        console.log(err);
+    }
+});
+
+export default { addFriendship, acceptFriendship, rejectFriendship, getFriends, getRequests };
