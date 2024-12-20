@@ -48,11 +48,15 @@ const SessionScreen = () => {
         status,
       };
 
-      const response = await axios.post(`${SESSION_API_END_POINT}/add`, newSession, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Add your authentication token
-        },
-      });
+      const response = await axios.post(
+        `${SESSION_API_END_POINT}/add`,
+        newSession,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Add your authentication token
+          },
+        }
+      );
 
       setSessions([...sessions, response.data]);
       setSubject("");
@@ -60,7 +64,6 @@ const SessionScreen = () => {
       setEndTime("");
       setReminder("");
       setStatus("");
-
     } catch (error) {
       console.error("Error adding session:", error);
     }
@@ -103,7 +106,6 @@ const SessionScreen = () => {
                 value={subject}
               />
             </View>
-
             <View style={styles.sessionItem}>
               <Text style={styles.sessionDetailsText}>Start Time:</Text>
               <TextInput
@@ -114,7 +116,6 @@ const SessionScreen = () => {
                 value={startTime}
               />
             </View>
-
             <View style={styles.sessionItem}>
               <Text style={styles.sessionDetailsText}>End Time:</Text>
               <TextInput
@@ -125,7 +126,6 @@ const SessionScreen = () => {
                 value={endTime}
               />
             </View>
-
             <View style={styles.sessionItem}>
               <Text style={styles.sessionDetailsText}>Reminder:</Text>
               <Picker
@@ -137,7 +137,6 @@ const SessionScreen = () => {
                 <Picker.Item label="No" value="No" />
               </Picker>
             </View>
-
             <View style={styles.sessionItem}>
               <Text style={styles.sessionDetailsText}>Status:</Text>
               <Picker
@@ -150,9 +149,11 @@ const SessionScreen = () => {
                 <Picker.Item label="Pending" value="Pending" />
               </Picker>
             </View>
-
-            <TouchableOpacity style={styles.addButton} onPress={handleAddSession}>
-              <Text style={styles.addButtonText}>Add Session</Text>
+            <TouchableOpacity
+              style={styles.addTaskButton}
+              onPress={handleAddSession}
+            >
+              <Text style={styles.buttonText}>Add Task</Text>
             </TouchableOpacity>
           </View>
 
@@ -165,7 +166,9 @@ const SessionScreen = () => {
               sessions.map((session) => (
                 <View key={session.id} style={styles.taskItem}>
                   <Text style={styles.taskText}>{session.subject}</Text>
-                  <TouchableOpacity onPress={() => handleDeleteSession(session.id)}>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteSession(session.id)}
+                  >
                     <Text style={styles.deleteButton}>Delete</Text>
                   </TouchableOpacity>
                 </View>
@@ -260,6 +263,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
   },
+  addTaskButton: {
+    backgroundColor: "#007BFF",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "bold",
+  },
   userTasks: {
     flex: 1,
     backgroundColor: "#444",
@@ -311,7 +326,7 @@ const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: 'left',
+    textAlign: "left",
   },
 });
 
