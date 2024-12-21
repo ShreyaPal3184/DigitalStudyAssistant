@@ -40,8 +40,20 @@
     "react-native-screens": "^4.3.0",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-vector-icons": "^10.2.0",
+<<<<<<< HEAD
     "react-native-web": "~0.19.13",
     "react-native-wheel-scrollview-picker": "^2.0.6",
+=======
+<<<<<<< HEAD
+    "react-native-web": "~0.19.13",
+=======
+
+    "react-native-wheel-scrollview-picker": "^2.0.6",
+    "react-dom": "18.3.1",
+    "react-native-web": "~0.19.13",
+    "@expo/metro-runtime": "~4.0.0",
+>>>>>>> b430e084cc24b4517b78e96057929ed32a9b1b96
+>>>>>>> 9965edbd9cfe6a1add68d57cc718b56ed03f5157
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",
     "tailwind-rn": "^4.2.0",
