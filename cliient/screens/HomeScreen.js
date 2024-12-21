@@ -159,9 +159,9 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FDCEA5",
     padding: width * 0.01, // 5% padding for responsiveness
-    margin: width * 0.009, // Adjust margin for different screen sizes
+    // margin: width * 0.009, // Adjust margin for different screen sizes
     justifyContent: "space-between",
   },
   scrollContent: {
