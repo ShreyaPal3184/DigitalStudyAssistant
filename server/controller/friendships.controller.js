@@ -69,6 +69,10 @@ const getFriends = ("/get", authenticateToken, async (req, res) => {
             .input("userId", sql.Int, userId)
             .query("SELECT * FROM friendships WHERE userId = @userId AND status = 1");
 
+        if (result.recordset.length === 0) {
+            res.status(200).send("No friend requests found.");
+        }
+
         res.status(200).json(result.recordset);
     } catch(err) {
         res.send(err);
@@ -79,10 +83,14 @@ const getFriends = ("/get", authenticateToken, async (req, res) => {
 const getRequests = ("/requests", authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
+    console.log(userId);
+    
+
     try {
         const pool = await sql.connect(config);
         const result = await pool.request()
             .input("userId", sql.Int, userId)
+            .input("status", sql.Int, 0)
             .query("SELECT * FROM friendships WHERE friendId = @userId AND status = 0");
 
         res.status(200).json(result.recordset);

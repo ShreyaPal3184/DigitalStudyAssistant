@@ -11,6 +11,7 @@
     "dev:tailwind": "concurrently \"tailwindcss --input input.css --output tailwind.css --no-autoprefixer --watch\" \"tailwind-rn --watch\""
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.0",
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-picker/picker": "^2.10.2",
@@ -27,6 +28,7 @@
     "expo-linear-gradient": "^14.0.1",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-native": "0.76.3",
     "react-native-gesture-handler": "^2.21.2",
     "react-native-paper": "^5.12.5",
@@ -34,16 +36,11 @@
     "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.3.0",
     "react-native-vector-icons": "^10.2.0",
-<<<<<<< HEAD
-    "react-dom": "18.3.1",
     "react-native-web": "~0.19.13",
-    "@expo/metro-runtime": "~4.0.0"
-=======
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",
     "tailwind-rn": "^4.2.0",
     "twrnc": "^4.6.0"
->>>>>>> 5f9213182eb43dfead09f16fe77e34e05ccdab10
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
