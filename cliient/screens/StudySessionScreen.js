@@ -34,7 +34,7 @@ const StudySessionScreen = () => {
 
   const [tasks, setTasks] = useState([]);
   const [value, setValue] = useState(null);
-  const [notifications, setNotifications] = useState(false);
+  // const [notifications, setNotifications] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
   const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
 
