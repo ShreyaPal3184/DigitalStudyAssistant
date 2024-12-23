@@ -8,6 +8,10 @@ import { Background } from "@react-navigation/elements";
 import { StyleSheet } from "react-native";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import AntDesign from "react-native-vector-icons/AntDesign";
+import FileHub from "../screens/FileHub.js";
+import BlobPage from "../screens/BlogPage.js";
+import UsersScreen from "../screens/UsersScreen.js";
+import CommunityScreen from "../screens/CommunityScreen.js";
 const Tab = createBottomTabNavigator();
 
 const Tabs = () => {
@@ -51,13 +55,22 @@ const Tabs = () => {
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <AntDesign name="home" color={color} size={size} /> // Using AntDesign's "home" icon
+            <View>
+              <Image
+                source={require("../assets/tabIcons/home-agreement.png")}
+                resizeMode="contain"
+                style={{
+                  width: 25,
+                  height: 25,
+                }}
+              />
+            </View>
           ),
         }}
       />
 
       <Tab.Screen
-        name="Session"
+        name="Sessions"
         component={SessionScreen}
         options={{
           headerShown: false,
@@ -117,14 +130,14 @@ const Tabs = () => {
       />
 
       <Tab.Screen
-        name="Tasks"
-        component={TaskScreen}
+        name="Hub"
+        component={FileHub}
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <View>
               <Image
-                source={require("../assets/tabIcons/clipboard.png")}
+                source={require("../assets/tabIcons/open-folder.png")}
                 resizeMode="contain"
                 style={{
                   width: 25,
@@ -138,7 +151,7 @@ const Tabs = () => {
 
       <Tab.Screen
         name="Community"
-        component={TimerScreen}
+        component={CommunityScreen}
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (

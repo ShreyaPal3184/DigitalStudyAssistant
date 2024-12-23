@@ -24,6 +24,7 @@ const StudySessionScreen = () => {
   const images = [
     require("../assets/carouselImages/image1.png"),
     require("../assets/carouselImages/image2.png"),
+    require("../assets/carouselImages/image3.jpg"),
   ];
 
   const data = [
@@ -42,6 +43,11 @@ const StudySessionScreen = () => {
     studyTime: "",
     shortBreak: "",
     longBreak: "",
+  });
+
+  const [studyyTime, setStudyTime] = useState({
+    timeInHours: "",
+    timeInMin: "",
   });
 
   const addTask = () => {
@@ -67,33 +73,127 @@ const StudySessionScreen = () => {
           </View> */}
 
           {/* Session Time */}
-          <View style={styles.sessionContainer}>
-            <View style={styles.sessionHeader}>
-              <Text style={styles.sessionHeaderText}>Set Time: </Text>
+          <View
+            style={{
+              width: "100%",
+              backgroundColor: "pink",
+              borderRadius: 15,
+              height: 55,
+              justifyContent: "center",
+              marginTop: 15,
+              shadowColor: "black",
+              shadowOffset: {
+                width: 6,
+                height: 6,
+              },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 10,
+            }}
+          >
+            <Text style={{ textAlign: "center", fontSize: 16 }}>Set Time</Text>
+          </View>
+          <View
+            style={{
+              marginTop: 15,
+              justifyContent: "space-",
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#FFDAB9",
+              borderRadius: 15,
+              ...styles.boxShadow,
+            }}
+          >
+            <View
+              style={{
+                padding: 20,
+                justifyContent: "center",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "column",
+                  margin: 20,
+                  shadowColor: "#333333",
+                  shadowOffset: {
+                    width: 6,
+                    height: 6,
+                  },
+                  shadowOpacity: 0.5,
+                  shadowRadius: 4,
+                  elevation: 10,
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: "bold" }}>HOURS</Text>
+                <TextInput
+                  style={{
+                    width: 80,
+                    backgroundColor: "#f4f4f4",
+                    margin: 5,
+                    borderRadius: 8,
+                    height: 70,
+                    fontSize: 40,
+                    fontWeight: "bold",
+                  }}
+                  placeholder="  01"
+                  placeholderTextColor="lightgrey"
+                  keyboardType="numeric"
+                  value={studyyTime.timeInHours}
+                  onChangeText={(text) =>
+                    setStudyTime({ ...studyyTime, timeInHours: text })
+                  }
+                />
+              </View>
+
+              <View style={{ flexDirection: "column" }}>
+                <Text style={{ fontSize: 15, fontWeight: "bold" }}>MINUTE</Text>
+                <TextInput
+                  style={{
+                    width: 80,
+                    backgroundColor: "#f4f4f4",
+                    margin: 5,
+                    borderRadius: 8,
+                    height: 70,
+                    fontSize: 40,
+                    fontWeight: "bold",
+                  }}
+                  keyboardType="numeric"
+                  placeholder="  00"
+                  placeholderTextColor="lightgrey"
+                  value={studyyTime.timeInMin}
+                  onChangeText={(text) =>
+                    setPomodoroTimers({ ...studyyTime, timeInMin: text })
+                  }
+                />
+              </View>
             </View>
           </View>
 
           {/* Tasks */}
-          <View style={styles.tasksContainer}>
-            <View style={styles.tasksHeader}>
-              <Text style={styles.taskHeaderText}>Tasks: </Text>
-            </View>
+          <View
+            style={{
+              width: "100%",
+              backgroundColor: "pink",
+              borderRadius: 15,
+              height: 55,
+              justifyContent: "center",
+              marginTop: 15,
+              shadowColor: "black",
+              shadowOffset: {
+                width: 6,
+                height: 6,
+              },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 10,
+            }}
+          >
+            <Text style={{ textAlign: "center", fontSize: 16 }}>Tasks</Text>
+          </View>
 
-            <View
-              style={{
-                marginBottom: 10,
-                borderBottomColor: "black",
-                borderBottomWidth: StyleSheet.hairlineWidth,
-                shadowColor: "red",
-                shadowOffset: {
-                  width: 6,
-                  height: 6,
-                },
-                shadowOpacity: 1,
-                shadowRadius: 9,
-                elevation: 10,
-              }}
-            />
+          <View style={styles.tasksContainer}>
             <ScrollView>
               {tasks.map((task, index) => (
                 <View
@@ -101,8 +201,18 @@ const StudySessionScreen = () => {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
-                    backgroundColor: "#f5f5f5",
-                    padding: 5,
+                    backgroundColor: "pink",
+                    padding: 7,
+                    marginBottom: 7,
+                    borderRadius: 10,
+                    shadowColor: "red",
+                    shadowOffset: {
+                      width: 6,
+                      height: 6,
+                    },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 14,
+                    elevation: 5,
                   }}
                 >
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -122,15 +232,6 @@ const StudySessionScreen = () => {
                 </View>
               ))}
             </ScrollView>
-
-            {/* <View
-              style={{
-                marginTop: 10,
-                marginBlock: 5,
-                borderBottomColor: "black",
-                borderBottomWidth: StyleSheet.hairlineWidth,
-              }}
-            /> */}
 
             <View
               style={{
@@ -208,7 +309,7 @@ const StudySessionScreen = () => {
                       borderColor: "#FDCEA5",
                       justifyContent: "center",
                       alignItems: "center",
-                      backgroundColor: "hotpink",
+                      backgroundColor: "#FDCEA5",
                     }}
                   >
                     <Image
@@ -257,24 +358,51 @@ const StudySessionScreen = () => {
           {value === "1" && (
             <View
               style={{
-                justifyContent: "center",
+                justifyContent: "space-",
                 flexDirection: "row",
                 alignItems: "center",
+                backgroundColor: "#FFDAB9",
+                borderWidth: 1,
+                borderColor: 'yellow'
               }}
             >
               <View
                 style={{
                   padding: 20,
-                  justifyContent: 'center',
+                  justifyContent: "center",
                   flexDirection: "row",
-                  alignItems: 'center',
-                  
+                  alignItems: "center",
                 }}
               >
-                <View style={{ flexDirection: "column", margin: 20, }}>
-                  <Text>Study Time (mins)</Text>
+                <View
+                  style={{
+                    flexDirection: "column",
+                    margin: 20,
+                    shadowColor: "#333333",
+                    shadowOffset: {
+                      width: 6,
+                      height: 6,
+                    },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 4,
+                    elevation: 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+                    Study Time {"\n"} (mins)
+                  </Text>
                   <TextInput
-                    style={{ width: 100, backgroundColor: "white" }}
+                    style={{
+                      width: 80,
+                      backgroundColor: "#f4f4f4",
+                      margin: 5,
+                      borderRadius: 8,
+                      height: 70,
+                      fontSize: 40,
+                      fontWeight: "bold",
+                    }}
+                    placeholder=" 25"
+                    placeholderTextColor="lightgrey"
                     keyboardType="numeric"
                     value={pomodoroTimers.studyTime}
                     onChangeText={(text) =>
@@ -284,21 +412,45 @@ const StudySessionScreen = () => {
                 </View>
 
                 <View style={{ flexDirection: "column" }}>
-                  <Text>Short Break Time (mins)</Text>
+                  <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+                    Short Break Time {"\n"} (mins)
+                  </Text>
                   <TextInput
-                    style={{ width: 100, backgroundColor: "white" }}
+                    style={{
+                      width: 80,
+                      backgroundColor: "#f4f4f4",
+                      margin: 5,
+                      borderRadius: 8,
+                      height: 70,
+                      fontSize: 40,
+                      fontWeight: "bold",
+                    }}
                     keyboardType="numeric"
+                    placeholder="05"
+                    placeholderTextColor="lightgrey"
                     value={pomodoroTimers.shortBreak}
                     onChangeText={(text) =>
                       setPomodoroTimers({ ...pomodoroTimers, shortBreak: text })
                     }
                   />
                 </View>
-                
+
                 <View style={{ flexDirection: "column" }}>
-                  <Text>Long Break Time (mins)</Text>
+                  <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+                    Long Break Time {"\n"} (mins)
+                  </Text>
                   <TextInput
-                    style={{ width: 100, backgroundColor: "white" }}
+                    style={{
+                      width: 80,
+                      backgroundColor: "#f4f4f4",
+                      margin: 5,
+                      borderRadius: 8,
+                      height: 70,
+                      fontSize: 40,
+                      fontWeight: "bold",
+                    }}
+                    placeholder="15"
+                    placeholderTextColor="lightgrey"
                     keyboardType="numeric"
                     value={pomodoroTimers.longBreak}
                     onChangeText={(text) =>
@@ -413,36 +565,12 @@ const styles = StyleSheet.create({
     margin: 5,
     fontWeight: "bold",
   },
-  sessionContainer: {
-    width: "100%",
-    backgroundColor: "#FFDAB9",
-    padding: 10, // Added padding to the session container for spacing
-    borderRadius: 15,
-
-    justifyContent: "flex-start",
-    alignItems: "left",
-    shadowColor: "blue",
-    shadowOffset: {
-      width: 6,
-      height: 6,
-    },
-    shadowOpacity: 1,
-    shadowRadius: 9,
-    elevation: 10,
-    marginBottom: 10,
-  },
-  sessionHeader: {
-    marginBottom: 10, // Spacing for better separation of elements
-  },
-  sessionHeaderText: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
   tasksContainer: {
     width: "100%",
     minHeight: 200,
     maxHeight: 300,
     padding: 10,
+    marginTop: 15,
     backgroundColor: "#FFDAB9",
     borderRadius: 15,
     shadowColor: "blue",

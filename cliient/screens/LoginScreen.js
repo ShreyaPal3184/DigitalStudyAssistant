@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     width: "95%",
-    height: 700,
+    height: 800,
     backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
