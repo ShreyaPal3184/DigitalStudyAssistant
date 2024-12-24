@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Button } from "react-native-web";
+import { View, Button } from "react-native";
 
 const AddFile = () => {
   return (

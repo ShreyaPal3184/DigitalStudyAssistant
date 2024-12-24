@@ -28,6 +28,18 @@ const HomeScreen = () => {
   const streakDays = 7; // Example streak value
   const navigation = useNavigation();
 
+  const today = new Date();
+  const weekday = today.toLocaleString("en-US", { weekday: "long" }); // e.g., Monday
+  const month = today.toLocaleString("en-US", { month: "long" }); // e.g., December
+  const day = today.getDate(); // e.g., 23
+  const year = today.getFullYear(); // e.g., 2024
+
+  const prevDay = new Date(today);
+  prevDay.setDate(today.getDate() - 1);
+
+  const nextDay = new Date(today);
+  nextDay.setDate(today.getDate() + 1);
+
   useEffect(() => {}, []);
 
   // Handle navigation
@@ -67,23 +79,31 @@ const HomeScreen = () => {
           </View>
         </View>
 
+        {/* date */}
+        <View style={{ height: 100, width: "20%", }}>
+          <View>
+            <View> {/* prev day*/}
+            <Text style={{fontSize: 24, fontWeight: 'bold', marginLeft: 5}}>{}</Text>
+            </View>
+          </View>
+          <Text style={{fontSize: 24, fontWeight: 'bold', marginLeft: 5}}>{weekday}</Text>
+        </View>
+
         {/* Daily Qoute */}
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-           
           <View
             style={{
               width: "100%",
               padding: 20,
               borderRadius: 15,
               marginBottom: 10,
-              backgroundColor: "#bbb",
+              backgroundColor: "#FEE0C1",
             }}
           >
-             
             <Image
               source={require("../assets/qoutes/right.png")}
               style={{ height: 25, width: 25, alignSelf: "flex-start" }}
-            /> 
+            />
             <ScrollView
               showsVerticalScrollIndicator={false}
               style={{ maxHeight: 200 }}
@@ -92,7 +112,6 @@ const HomeScreen = () => {
                 alignItems: "center",
               }}
             >
-               
               <Text
                 style={{
                   fontSize: 25,
@@ -102,26 +121,25 @@ const HomeScreen = () => {
                   maxWidth: "85%",
                 }}
               >
-                 
-                Daily Motivational Quotes 
-              </Text> 
-            </ScrollView> 
+                Daily Motivational Quotes
+              </Text>
+            </ScrollView>
             <Image
               source={require("../assets/qoutes/left.png")}
               style={{ height: 25, width: 25, alignSelf: "flex-end" }}
-            /> 
-          </View> 
+            />
+          </View>
         </ScrollView>
 
         {/* Digital Tracker Section */}
-        <View style={styles.digitalTracker}>
+        {/* <View style={styles.digitalTracker}>
           <Text style={styles.trackerTitle}>📊 Digital Tracker</Text>
           <View style={styles.trackerContent}>
             <Text style={styles.trackerText}>Logged-in Days: 15</Text>
             <Text style={styles.trackerText}>Avg Task Completion: 85%</Text>
             <Text style={styles.trackerText}>Total Study Sessions: 22</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Session Details */}
 
@@ -131,7 +149,7 @@ const HomeScreen = () => {
             minHeight: 300,
             padding: 5,
             margin: 3,
-            ...styles.shadow
+            ...styles.shadow,
           }}
         >
           <View style={{ flexDirection: "row" }}>
@@ -150,7 +168,7 @@ const HomeScreen = () => {
               Pomodoro
             </Text>
           </View>
-          <View style={{...styles.shadow}}>
+          <View style={{ ...styles.shadow }}>
             <Text
               style={{
                 fontSize: 24,
@@ -171,17 +189,17 @@ const HomeScreen = () => {
                 borderBottomLeftRadius: 10,
                 borderBottomRightRadius: 10,
                 borderTopRightRadius: 10,
-                borderTopColor: 'orange',
+                borderTopColor: "orange",
                 borderTopWidth: 2,
-                borderLeftColor: 'orange',
+                borderLeftColor: "orange",
                 borderLeftWidth: 2,
-                position: 'relative',
-                overflow: 'hidden', // Ensures the shadow effect stays within the bounds
+                position: "relative",
+                overflow: "hidden", // Ensures the shadow effect stays within the bounds
                 // iOS Shadow Properties
-                shadowColor: 'orange',
-                shadowOffset: { width: 0, height: 0 },  // No offset to keep it centered
-                shadowOpacity: 0.5,  // Adjust opacity for the shadow intensity
-                shadowRadius: 10,  // Adjust the blur radius for the inward shadow effect
+                shadowColor: "orange",
+                shadowOffset: { width: 0, height: 0 }, // No offset to keep it centered
+                shadowOpacity: 0.5, // Adjust opacity for the shadow intensity
+                shadowRadius: 10, // Adjust the blur radius for the inward shadow effect
                 // Android Elevation (simulates shadow)
                 elevation: 5,
               }}
@@ -190,12 +208,28 @@ const HomeScreen = () => {
         </View>
 
         {/* Start Studying Button */}
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={handleStartStudying}
+        <View
+          style={{
+            marginTop: 10,
+            backgroundColor: "#FF00FF",
+            height: 50,
+            borderRadius: 100,
+            width: "80%",
+            shadowColor: "red",
+            shadowOffset: {
+              width: 6,
+              height: 6,
+            },
+            shadowOpacity: 1,
+            shadowRadius: 9,
+            elevation: 10,
+            alignSelf: "center",
+          }}
         >
-          <Text style={styles.startButtonText}>Start Studying</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={{}} onPress={handleStartStudying}>
+            <Text style={styles.startButtonText}>Start Studying</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -204,23 +238,30 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "pink",
+    backgroundColor: "#FEE0C1",
     padding: width * 0.01, // 5% padding for responsiveness
     // margin: width * 0.009, // Adjust margin for different screen sizes
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
+    flexDirection: "column",
   },
   scrollContent: {
-    paddingBottom: 20, // To ensure there is some space at the bottom when scrolling
+    paddingBottom: 40, // To ensure there is some space at the bottom when scrolling
   },
 
   outerHeader: {
-    padding: 10,
-    backgroundColor: "lightyellow",
+    padding: 5,
+    backgroundColor: "pink",
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
     marginBottom: 10,
-    // left: 20,
-    ri: 20,
+    shadowColor: "#red",
+    shadowOffset: {
+      width: 6,
+      height: 6,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 10,
   },
   header: {
     flexDirection: "row",
@@ -236,11 +277,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-  },
-  menu: {
-    marginLeft: 10, // Adjust margin as needed
-    backgroundColor: "#bbb",
-    zIndex: 10,
   },
   welcomeText: {
     fontSize: width * 0.06, // Dynamic font size based on screen width
@@ -320,10 +356,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   startButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
+    fontSize: 16,
     fontWeight: "bold",
+    textAlign: "center",
   },
   shadow: {
     shadowColor: "75FDF0",

@@ -22,16 +22,18 @@ const Tabs = () => {
           position: "absolute",
           left: 20,
           right: 20,
-          // marginEnd: 10,
-          // marginStart: 10,
+          bottom: 10,
+          marginEnd: 10,
+          marginStart: 10,
           elevation: 0,
-          backgroundColor: "white",
-          // borderRadius: 25,
+          backgroundColor: "#800080",
+          borderRadius: 25,
           borderColor: "blue",
           // borderTopRightRadius: 25 ,
           // borderTopLeftRadius: 25,
           height: 71,
           ...styles.shadow,
+          paddingTop: 5,
           paddingBottom: 10, // Adjust this value to ensure the icon stays centered vertically
         },
         tabBarActiveTintColor: "blue", // Active tab color
@@ -174,14 +176,14 @@ const Tabs = () => {
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: "75FDF0",
+    shadowColor: "800080",
     shadowOffset: {
-      width: 10,
-      height: 10,
+      width: 6,
+      height: 6,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
   },
 });
 

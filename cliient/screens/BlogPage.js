@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import axios from 'axios';
-import { useNavigation } from "@react-navigation/native";
-
 
 const BlobPage = ({ navigation }) => {
   const [blobs, setBlobs] = useState([]);
@@ -58,6 +56,7 @@ const BlobPage = ({ navigation }) => {
   );
 
   return (
+    
     <View style={styles.container}>
       <Text style={{ fontSize: 30, textAlign: 'center', marginBottom: 15 }}>Files</Text>
       <Button title="Add files" onPress={() => navigation.navigate("AddFile")} />  

@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import Tabs from "./components/Tabs"; // Import your Tabs component
+import AddFile from "./screens/AddFileScreen";
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,8 @@ export default function App() {
         <Stack.Screen name="Register" component={RegisterScreen} />
         {/* Show Tabs only if the user is logged in */}
         {isLoggedIn && <Stack.Screen name="Tabs" component={Tabs} />}
+
+        <Stack.Screen name="AddFile" component={AddFile}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

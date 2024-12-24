@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { token } from '../utils/constant';
 
 const UsersScreen = () => {
   const [users, setUsers] = useState([]);
@@ -19,13 +20,7 @@ const UsersScreen = () => {
     }
   };
 
-  const getToken = async () => {
-    const token = await AsyncStorage.getItem('authToken');
-    saveToken(token);
-    console.log('Retrieved token:', token);
-    return token;
-  };
-
+  const getToken = "";
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -44,7 +39,7 @@ const UsersScreen = () => {
   const fetchFriends = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
+      const token = getToken;
 
       if (!token) {
         Alert.alert('Error', 'Authentication token is missing.');
@@ -79,7 +74,7 @@ const UsersScreen = () => {
   const fetchFriendRequests = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
+      const token = getToken;
 
       if (!token) {
         Alert.alert('Error', 'Authentication token is missing.');
@@ -103,7 +98,7 @@ const UsersScreen = () => {
 
   const addFriend = async (userId) => {
     try {
-      const token = await getToken();
+      const token =  getToken;
 
       if (!token) {
         Alert.alert('Error', 'Authentication token is missing.');
