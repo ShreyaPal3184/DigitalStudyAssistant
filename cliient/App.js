@@ -1,19 +1,80 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import Tabs from "./components/Tabs"; // Import your Tabs component
 import AddFile from "./screens/AddFileScreen";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 const Stack = createStackNavigator();
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // State to manage login status
 
+  const[ showOnboarding, setShowOnBoarding] = useState(null);
+
+  useEffect(() => {
+    checkIfAlreadyOnboarded();
+  }, [])
+
+  const checkIfAlreadyOnboarded = async () => {
+    let onBoarded = await getItem('onboarded');
+    if(onBoarded == 1){
+      //hide onboarding
+      setShowOnBoarding(false);
+    }else{
+      //show onboarding
+      setShowOnBoarding(true);
+    }
+  }
+
+  // if(showOnboarding===false){
+  //   return (
+  //     <NavigationContainer>
+  //       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Onboarding">
+  //         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+  //         {/* Show Login Screen or Tabs based on the login state */}
+  //         <Stack.Screen name="Login">
+  //           {(props) => (
+  //             <LoginScreen {...props} setIsLoggedIn={setIsLoggedIn} />
+  //           )}
+  //         </Stack.Screen>
+  
+  //         <Stack.Screen name="Register" component={RegisterScreen} />
+  //         {/* Show Tabs only if the user is logged in */}
+  //         {isLoggedIn && <Stack.Screen name="Tabs" component={Tabs} />}
+  
+  //         <Stack.Screen name="AddFile" component={AddFile}/>
+  //       </Stack.Navigator>
+  //     </NavigationContainer>
+  //   );
+  // }else{
+  //   return (
+  //     <NavigationContainer>
+  //       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
+  //         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+  //         {/* Show Login Screen or Tabs based on the login state */}
+  //         <Stack.Screen name="Login">
+  //           {(props) => (
+  //             <LoginScreen {...props} setIsLoggedIn={setIsLoggedIn} />
+  //           )}
+  //         </Stack.Screen>
+  
+  //         <Stack.Screen name="Register" component={RegisterScreen} />
+  //         {/* Show Tabs only if the user is logged in */}
+  //         {isLoggedIn && <Stack.Screen name="Tabs" component={Tabs} />}
+  
+  //         <Stack.Screen name="AddFile" component={AddFile}/>
+  //       </Stack.Navigator>
+  //     </NavigationContainer>
+  //   );
+  // }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Onboarding">
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         {/* Show Login Screen or Tabs based on the login state */}
         <Stack.Screen name="Login">
           {(props) => (
