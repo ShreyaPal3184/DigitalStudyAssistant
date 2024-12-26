@@ -122,6 +122,7 @@ const OnboardingScreen = () => {
               ),
               title: "Organize Your Tasks",
               subtitle: "Break down your study goals into manageable tasks for consistent progress.",
+              
             },
             {
               backgroundColor: "#3E5879",

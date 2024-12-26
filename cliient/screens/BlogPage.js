@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
+    paddingBottom: 100
   },
   blobItem: {
     marginBottom: 16,

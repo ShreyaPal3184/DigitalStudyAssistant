@@ -14,12 +14,10 @@ import {
 } from "react-native";
 import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
-import NotificationCheckbox from "../components/NotificationCheckbox";
 import colors from "../styles/colors";
 import { USER_API_END_POINT } from "../utils/constant";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // For storing token
-import LinearGradient from 'react-native-linear-gradient';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginScreen = ({ navigation, setIsLoggedIn }) => {
   const [email, setEmail] = useState("");
@@ -28,40 +26,52 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert("Error", "Please enter both email and password");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Send the login request to the server
-      const response = await axios.post(`${USER_API_END_POINT}/login`, { email, password }, {
-        withCredentials: true, // This helps send cookies if needed
-      });
+      const response = await axios.post(
+        `${USER_API_END_POINT}/login`,
+        { email, password },
+        {
+          withCredentials: true, 
+        }
+      );
 
-      console.log("Response data:", response.data);  // Log the response to check if the token is returned
+      console.log("Response data:", response.data); 
 
       if (response.data.success) {
-        Alert.alert('Login Successful', response.data.message);
+        Alert.alert("Login Successful", response.data.message);
 
-        // Store the JWT token from the response in AsyncStorage
         const token = response.data.token;
+        // const username = response.data.username;
         if (token) {
-          console.log("Received token:", token);  // Log token to ensure it is received
-          await AsyncStorage.setItem('userToken', token);  // Store it in AsyncStorage
+          console.log("Received token:", token); 
+          await AsyncStorage.setItem("userToken", token); 
         } else {
-          Alert.alert('Error', 'Token is missing in the response.');
+          Alert.alert("Error", "Token is missing in the response.");
         }
 
-        // Set logged-in state to true and navigate to Tabs
+        // if (username) {
+        //   console.log("Received username:", username); 
+        //   await AsyncStorage.setItem("userName", username); 
+        // } else {
+        //   Alert.alert("Error", "Username is missing in the response.");
+        // }
+
+        // await AsyncStorage.setItem("userToken", token);
+        // await AsyncStorage.setItem("userName", username);
+
         setIsLoggedIn(true);
-        navigation.replace('Tabs'); // Navigate to Tabs after successful login
+        navigation.replace("Tabs"); 
       } else {
-        Alert.alert('Login Failed', response.data.message);
+        Alert.alert("Login Failed", response.data.message);
       }
     } catch (error) {
-      Alert.alert('Error', 'An error occurred during login');
+      Alert.alert("Error", "An error occurred during login");
     } finally {
       setLoading(false);
     }
@@ -70,52 +80,50 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
   return (
     <SafeAreaView style={styles.Outercontainer}>
       <SafeAreaView style={styles.innerContainer}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-          <View style={styles.content}>
-            {/* Upper Section - Logo/Image */}
-            <View style={styles.upperSection}>
-              <Image
-                source={require("../assets/logo.png")} // Replace with your logo path
-                style={styles.logo}
-                resizeMode="cover"
-              />
-            </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View style={styles.content}>
+              {/* Upper Section - Logo/Image */}
+              <View style={styles.upperSection}>
+                <Image
+                  source={require("../assets/logo.png")} // Replace with your logo path
+                  style={styles.logo}
+                  resizeMode="cover"
+                />
+              </View>
 
-            {/* Horizontal Line */}
-            <View style={styles.line} />
+              {/* Horizontal Line */}
+              <View style={styles.line} />
 
-            {/* Lower Section - Login Form */}
-            <View style={styles.lowerSection}>
-              <Text style={styles.title}>Login</Text>
-              <CustomInput
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-              />
-              <CustomInput
-                placeholder="Password"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
-              <CustomButton
-                title={loading ? "Logging in..." : "Login"}
-                onPress={handleLogin}
-                
-              />
-              <CustomButton
-                title="Don't have an Account? Register"
-                onPress={() => navigation.navigate("Register")}
-              />
-              
+              {/* Lower Section - Login Form */}
+              <View style={styles.lowerSection}>
+                <Text style={styles.title}>Login</Text>
+                <CustomInput
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+                <CustomInput
+                  placeholder="Password"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <CustomButton
+                  title={loading ? "Logging in..." : "Login"}
+                  onPress={handleLogin}
+                />
+                <CustomButton
+                  title="Don't have an Account? Register"
+                  onPress={() => navigation.navigate("Register")}
+                />
+              </View>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </SafeAreaView>
   );
@@ -125,17 +133,17 @@ const styles = StyleSheet.create({
   Outercontainer: {
     flex: 1,
     backgroundColor: "#d1f4ff",
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center",
   },
   innerContainer: {
-    height: 600 ,
+    height: 600,
     backgroundColor: "white",
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 10,
-    overflow: 'hidden', // Important for shadow clipping
-    shadowColor: '#000',
+    overflow: "hidden", // Important for shadow clipping
+    shadowColor: "#000",
     shadowOpacity: 0.5,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 0 },
