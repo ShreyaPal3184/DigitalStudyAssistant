@@ -1,18 +1,37 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import TimerScreen from "../screens/TimerScreen";
 import HomeScreen from "../screens/HomeScreen";
-import TaskScreen from "../screens/TaskScreen.js";
 import SessionScreen from "../screens/SessionScreen";
-import StudySessionScreen from "../screens/StudySessionScreen.js";
-import { Background } from "@react-navigation/elements";
 import { StyleSheet } from "react-native";
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import AntDesign from "react-native-vector-icons/AntDesign";
+import { View, Dimensions, Image, TouchableOpacity } from "react-native";
 import FileHub from "../screens/FileHub.js";
-import BlobPage from "../screens/BlogPage.js";
-import UsersScreen from "../screens/UsersScreen.js";
 import CommunityScreen from "../screens/CommunityScreen.js";
+import Animated, { useSharedValue, withSpring, useAnimatedStyle } from "react-native-reanimated";
+import SessionNTaskDrawer from "../screens/SessionNTaskDrawer.js";
+
 const Tab = createBottomTabNavigator();
+const { width } = Dimensions.get("window");
+
+const AnimatedIcon = ({ source, focused }) => {
+  const scale = useSharedValue(focused ? 1.2 : 1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(scale.value) }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Image
+        source={source}
+        resizeMode="contain"
+        style={{
+          width: 25,
+          height: 25,
+          tintColor: focused ? "black" : "#aaa",
+        }}
+      />
+    </Animated.View>
+  );
+};
 
 const Tabs = () => {
   return (
@@ -20,33 +39,21 @@ const Tabs = () => {
       screenOptions={{
         tabBarStyle: {
           position: "absolute",
-          left: 20,
-          right: 20,
-          bottom: 10,
-          marginEnd: 10,
-          marginStart: 10,
           elevation: 0,
-          backgroundColor: "#F5F5F5",
-          borderRadius: 25,
-          // borderTopRightRadius: 25 ,
-          // borderTopLeftRadius: 25,
-          height: 71,
-          ...styles.shadow,
-          paddingTop: 5,
-          paddingBottom: 10, // Adjust this value to ensure the icon stays centered vertically
+          backgroundColor: "white",
+          height: width * 0.12,
+          borderColor: "white",
         },
-        tabBarActiveTintColor: "blue", // Active tab color
-        tabBarInactiveTintColor: "#aaa", // Inactive tab color
+        tabBarActiveTintColor: "black",
+        tabBarInactiveTintColor: "#aaa",
+        tabBarHideOnKeyboard: true,
+        tabBarInactiveBackgroundColor: "white",
         tabBarLabelStyle: {
-          fontSize: 18, // Label font size
-          fontWeight: "bold", // Label font weight
-        },
-        tabBarIconStyle: {
-          justifyContent: "center", // Vertically center the icons
-          alignItems: "center", // Horizontally center the icons
+          fontSize: 10,
+          fontWeight: "100",
         },
         tabBarButton: (props) => (
-          <TouchableOpacity {...props} activeOpacity={1} /> // Removes ripple effect
+          <TouchableOpacity {...props} activeOpacity={1} />
         ),
       }}
     >
@@ -55,97 +62,60 @@ const Tabs = () => {
         component={HomeScreen}
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <View>
-              <Image
-                source={require("../assets/tabIcons/home-agreement.png")}
-                resizeMode="contain"
-                style={{
-                  width: 25,
-                  height: 25,
-                }}
-              />
-            </View>
+          tabBarIcon: ({ focused }) => (
+            <AnimatedIcon
+              source={require("../assets/tabIcons/home-agreement.png")}
+              focused={focused}
+            />
           ),
         }}
       />
 
       <Tab.Screen
-        name="Sessions"
+        name="Study Hub"
         component={SessionScreen}
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <View>
-              <Image
-                source={require("../assets/tabIcons/self-directed-learning.png")}
-                resizeMode="contain"
-                style={{
-                  width: 25,
-                  height: 25,
-                }}
-              />
-            </View>
+            <AnimatedIcon
+              source={require("../assets/tabIcons/self-directed-learning.png")}
+              focused={focused}
+            />
           ),
         }}
       />
 
       <Tab.Screen
-        name="Start a Session"
-        component={StudySessionScreen}
+        name="Create"
+        component={SessionNTaskDrawer}
         options={{
           headerShown: false,
-          headerStyle: {
-            backgroundColor: "#333333",
-            borderBottomLeftRadius: 20,
-            borderBottomRightRadius: 20,
-            shadowColor: "black",
-            shadowOffset: {
-              width: 6,
-              height: 6,
-            },
-            shadowOpacity: 0.4,
-            shadowRadius: 10,
-            elevation: 10,
-          },
           headerTitleStyle: {
             fontWeight: "bold",
             fontSize: 20,
-            color: "white", // Example title color
+            color: "white",
           },
-          headerTitle: "Create Your Session", // Custom header title
+          headerTitle: "Create Your Session",
           tabBarIcon: ({ focused }) => (
-            <View>
-              <Image
-                source={require("../assets/tabIcons/plus.png")}
-                resizeMode="contain"
-                style={{
-                  width: 75,
-                  height: 75,
-                }}
-              />
-            </View>
+            <AnimatedIcon
+              source={require("../assets/tabIcons/plus.png")}
+              focused={focused}
+            />
           ),
-          tabBarLabel: "",
         }}
+        
       />
 
       <Tab.Screen
-        name="Hub"
+        name="File Hub"
         component={FileHub}
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <View>
-              <Image
-                source={require("../assets/tabIcons/open-folder.png")}
-                resizeMode="contain"
-                style={{
-                  width: 25,
-                  height: 25,
-                }}
-              />
-            </View>
+            <AnimatedIcon
+              source={require("../assets/tabIcons/open-folder.png")}
+              focused={focused}
+            />
           ),
         }}
       />
@@ -156,16 +126,10 @@ const Tabs = () => {
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <View>
-              <Image
-                source={require("../assets/tabIcons/people.png")}
-                resizeMode="contain"
-                style={{
-                  width: 25,
-                  height: 25,
-                }}
-              />
-            </View>
+            <AnimatedIcon
+              source={require("../assets/tabIcons/people.png")}
+              focused={focused}
+            />
           ),
         }}
       />

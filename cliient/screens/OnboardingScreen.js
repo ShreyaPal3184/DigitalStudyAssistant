@@ -25,8 +25,8 @@ const OnboardingScreen = () => {
 
   const doneButton = ({...props}) => {
     return (
-      <TouchableOpacity style={{padding: 20,margin: 2 , marginRight: 10}} {...props}>
-      <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 15, color: 'white'}}>Done</Text>
+      <TouchableOpacity style={{padding: 20,margin: 2 , marginRight: 10, }} {...props}>
+      <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 15, color: 'black'}}>Done</Text>
     </TouchableOpacity>
     )
   }
@@ -139,8 +139,8 @@ const OnboardingScreen = () => {
                   />
                 </View>
               ),
-              title: "Join the Study Community",
-              subtitle: "Connect with friends, share resources, and grow together in your academic journey.",
+              title: "On the go File Hub",
+              subtitle: "A single land for all your files.",
             },
             {
               backgroundColor: "#213555",
@@ -159,6 +159,27 @@ const OnboardingScreen = () => {
               ),
               title: "Join the Study Community",
               subtitle: "Connect with friends, share resources, and grow together in your academic journey.",
+            },
+            {
+              backgroundColor: "white",
+              image: (
+                <View>
+                  <LottieView
+                    style={styles.lottie}
+                    source={require("../assets/animations/loginRegister.json")}
+                    autoPlay={false}
+                    loop={true}
+                    ref={(animation) => {
+                      if (animation) animation.play();
+                    }}
+                    onError={(error) =>
+                      console.log("Error loading animation:", error)
+                    }
+                  />
+                </View>
+              ),
+              title: "Lets get you started",
+              subtitle: "",
             },
           ]}
         />

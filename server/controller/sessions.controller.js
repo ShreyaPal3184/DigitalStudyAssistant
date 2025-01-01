@@ -27,7 +27,7 @@ const addSession = ("/add", authenticateToken, async (req, res) => {
 
         res.status(201).json({message: "Session created successfully."});
 
-    } catch(err) {
+    } catch(err) { 
         res.status(500);
         res.send(err.message);
     }

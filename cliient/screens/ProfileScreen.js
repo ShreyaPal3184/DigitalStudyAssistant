@@ -8,13 +8,33 @@ import {
   Dimensions,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 import LottieView from "lottie-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState } from "react";
+import { useEffect } from "react";
 
 const { width, height } = Dimensions.get("window");
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const storedUsername = await AsyncStorage.getItem("userName");
+        if (storedUsername) {
+          setUsername(storedUsername);
+        }
+      } catch (error) {
+        console.error("Failed to fetch username from AsyncStorage:", error);
+      }
+    };
+
+    fetchUsername();
+  }, []);
 
   const handleBack = () => {
     navigation.navigate("Home");
@@ -25,106 +45,297 @@ const ProfileScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "pink" }}>
-      {/* header */}
-      <View style={{ padding: 5, width: "30%" }}>
-        <Text
-          style={{
-            fontSize: 30,
-            fontWeight: "bold",
-            paddingLeft: 20,
-            paddingTop: 20,
-          }}
-        >
-          {" "}
-          Profile{" "}
-        </Text>
-      </View>
-
-      <View
-        style={{
-          marginBottom: width * 0.02,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+      <ScrollView
+        contentContainerStyle={{ flexgrow: 1 }}
+        showsVerticalScrollIndicator={false}
       >
-        {/* <Image
-          source={require("../assets/carouselImages/image1.png")}
-          style={{
-            height: width * 0.3,
-            width: width * 0.3,
-            borderRadius: 100,
-            ...styles.shadow,
-          }}
-        /> */}
+        <View style={{ flexDirection: "column" }}>
+          <View
+            style={{
+              width: width,
+              flexDirection: "row",
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingTop: 10,
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ fontSize: 24 }}>Profile</Text>
+            <TouchableOpacity
+              onPress={() => console.log("Edit profile.")}
+              style={{ alignSelf: "flex-end" }}
+            >
+              <Image
+                source={require("../assets/edit.png")}
+                style={{ height: 25, width: 25, alignSelf: "center" }}
+              />
+            </TouchableOpacity>
+          </View>
 
-        <LottieView
-          style={{
-            height: width * 0.35,
-            width: width * 0.35,
-            borderRadius: 100,
-            ...styles.shadow,
-          }}
-          source={require("../assets/animations/SheAvatar.json")}
-          autoPlay={false}
-          loop={true}
-          ref={(animation) => {
-            if (animation) animation.play();
-          }}
-          onError={(error) => console.log("Error loading animation:", error)}
-        />
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "white",
+              height: height * 0.27,
+            }}
+          >
+            {/* Gradient Animation */}
+            <View style={{ position: "relative" }}>
+              <LottieView
+                style={{
+                  height: width * 0.65,
+                  width: width * 0.7,
+                  borderRadius: 0,
+                }}
+                source={require("../assets/animations/gradient1.json")}
+                autoPlay={false}
+                loop={true}
+                ref={(animation) => {
+                  if (animation) animation.play();
+                }}
+                onError={(error) =>
+                  console.log("Error loading animation:", error)
+                }
+              />
+            </View>
 
-        <Text style={{ fontSize: 30,}}>Hello, Shreya</Text>
-      </View>
+            {/* SheAvatar Animation */}
+            <View
+              style={{
+                position: "absolute", // Position this view absolutely over the gradient
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <LottieView
+                style={{
+                  height: width * 0.3,
+                  width: width * 0.3,
+                  borderRadius: 100,
+                  ...styles.shadow,
+                }}
+                source={require("../assets/animations/SheAvatar.json")}
+                autoPlay={false}
+                loop={true}
+                ref={(animation) => {
+                  if (animation) animation.play();
+                }}
+                onError={(error) =>
+                  console.log("Error loading animation:", error)
+                }
+              />
+              <Text style={{ fontWeight: "400", fontSize: 24, color: "white" }}>
+                {username.split(" ")[0]}
+              </Text>
+            </View>
+          </View>
 
-      <View
-        style={{
-          backgroundColor: "white",
-          height: height * 0.55,
-          width: width,
-          borderTopLeftRadius: 30,
-          borderTopRightRadius: 30,
-          borderBottomLeftRadius: 30,
-          borderBottomRightRadius: 30,
-          marginBottom: 20,
-          ...styles.shadow,
-        }}
-      ></View>
+          <View>
+            <View style={{ padding: 15 }}>
+              <Text style={{ color: "grey", paddingBottom: 5, fontSize: 12 }}>
+                USER ID
+              </Text>
+              <Text style={{ fontSize: 20, fontWeight: "900" }}>#USERKAID</Text>
+            </View>
+            <View style={{ padding: 15 }}>
+              <Text style={{ color: "grey", paddingBottom: 5, fontSize: 12 }}>
+                USERNAME
+              </Text>
+              <Text style={{ fontSize: 20, fontWeight: "900" }}>
+                {username}
+              </Text>
+            </View>
+            <View style={{ padding: 15 }}>
+              <Text style={{ color: "grey", paddingBottom: 5, fontSize: 12 }}>
+                EMAIL
+              </Text>
+              <Text style={{ fontSize: 20, fontWeight: "900" }}>
+                USER KA EMAIL
+              </Text>
+            </View>
+          </View>
+
+          <View
+            style={{
+              width: width * 0.9,
+              height: 0.8,
+              backgroundColor: "#000",
+              alignSelf: "center",
+            }}
+          />
+
+          <View style={{ padding: 15 }}>
+            {/* SECURITY */}
+            <View style={{ height: height * 0.12 }}>
+              <Text
+                style={{
+                  color: "grey",
+                  fontSize: 12,
+                }}
+              >
+                SECURITY
+              </Text>
+
+              {/* Privacy policy */}
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("PrivacyPolicy");
+                }}
+                style={{ padding: 5, paddingLeft: 0 }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 1,
+                  }}
+                >
+                  <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                    Privary Policy
+                  </Text>
+                  <Image
+                    source={require("../assets/rightarrow.png")}
+                    style={{ height: 28, width: 28 }}
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {/* user data protections */}
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("UserDataProtection");
+                }}
+                style={{ padding: 5, paddingLeft: 0 }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 1,
+                  }}
+                >
+                  <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                    User Data Protection
+                  </Text>
+                  <Image
+                    source={require("../assets/rightarrow.png")}
+                    style={{ height: 28, width: 28 }}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* NOTIFICATIONS */}
+            <View style={{ height: height * 0.08 }}>
+              <Text
+                style={{
+                  color: "grey",
+                  fontSize: 12,
+                }}
+              >
+                NOTIFICATIONS
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  console.log("FAQ");
+                }}
+                style={{ padding: 5, paddingLeft: 0 }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 1,
+                  }}
+                >
+                  <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                    Manage Notifications
+                  </Text>
+                  <Image
+                    source={require("../assets/rightarrow.png")}
+                    style={{ height: 28, width: 28 }}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* HELP AND SUPPORT */}
+            {/* ABOUT US */}
+            <View style={{ height: height * 0.08 }}>
+              <Text style={{ color: "grey", fontSize: 12 }}>
+                HELP AND SUPPORT
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("AboutUs");
+                }}
+                style={{ padding: 5, paddingLeft: 0 }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 1,
+                  }}
+                >
+                  <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                    About Us
+                  </Text>
+                  <Image
+                    source={require("../assets/rightarrow.png")}
+                    style={{ height: 28, width: 28 }}
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {/* FAQ */}
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("FAQ");
+                }}
+                style={{ padding: 5, paddingLeft: 0 }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 1,
+                  }}
+                >
+                  <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                    Frequently Asked Questions
+                  </Text>
+                  <Image
+                    source={require("../assets/rightarrow.png")}
+                    style={{ height: 28, width: 28 }}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
 
       {/* Logout */}
-      <View
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "pink",
-          height: width * 0.2,
-        }}
-      >
+      <View style={{ padding: 15, justifyContent: "flex-end" }}>
         <TouchableOpacity
-          onPress={handleLogout}
+          onPress={() => {
+            navigation.navigate("Login");
+          }}
           style={{
-            width: width,
-            height: width * 0.15,
-            backgroundColor: "white",
+            flexDirection: "row",
+            padding: 1,
             justifyContent: "center",
             alignItems: "center",
-            flexDirection: "row",
-            backgroundColor: "pink",
           }}
         >
           <Image
             source={require("../assets/sign-out.png")}
-            style={{
-              height: width * 0.05,
-              width: width * 0.05,
-              marginRight: width * 0.02,
-            }}
+            style={{ height: 20, width: 20 }}
           />
-          <Text
-            style={{ textAlign: "center", fontWeight: "bold", fontSize: 20 }}
-          >
-            logOut
-          </Text>
+          <Text style={{ fontSize: 20 }}> Sign out</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -140,7 +351,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.5,
-    elevation: 10,
+    elevation: 5,
   },
 });
 export default ProfileScreen;

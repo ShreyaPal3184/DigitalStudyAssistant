@@ -9,74 +9,142 @@ import {
   SafeAreaView,
   Modal,
   Button,
+  Dimensions,
 } from "react-native";
 import { useFonts } from "expo-font";
-import { TASK_API_END_POINT} from "../utils/constant";
+import { TASK_API_END_POINT } from "../utils/constant";
+import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
+
+const { width, height } = Dimensions.get("window");
 
 const TaskScreen = () => {
-  const [fontsLoaded] = useFonts({
-    PlaywriteCOGuides: require("../assets/fonts/PlaywriteCOGuides-Regular.ttf"),
-  });
+
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        if (storedToken) {
+          setToken(storedToken);
+        }
+      } catch (error) {
+        console.error("Failed to fetch token from AsyncStorage:", error);
+      }
+    };
+
+    fetchToken();
+  }, []);
+
+  const [taskTitle, setTaskTitle] = useState("");
+
+  const [tasks, setTasks] = useState([]);
 
   const [taskDescription, setTaskDescription] = useState("");
+
+  const [taskPriority, setTaskPriority] = useState("Medium");
+
+  const [taskDueDate, setTaskDueDate] = useState(new Date());
+
   const [randomQuote, setRandomQuote] = useState(
     "The secret of getting ahead is getting started."
   );
-  const [modalVisible, setModalVisible] = useState(false);
 
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
-  }
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || taskDueDate;
+    setShowDatePicker(false);
+    setTaskDueDate(currentDate);
+  };
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch(`${TASK_API_END_POINT}/get`);
-      if (response.ok) {
-        const data = await response.json();
-        setTasks(data);
+      const response = await fetch(`${TASK_API_END_POINT}/get`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      const contentType = response.headers.get("content-type");
+      let responseData;
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
       } else {
-        console.error("Failed to fetch tasks");
+        responseData = await response.text();
+      }
+      console.log("Response status:", response.status); // Log the response status
+      console.log("Response data:", responseData); // Log the response data for debugging
+
+      if (response.ok) {
+        setTasks(responseData);
+      } else {
+        console.error("Failed to fetch tasks:", responseData);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
   };
-  
+
   const addTask = async () => {
+    if (taskTitle.trim() === "") {
+      alert("Task title cannot be empty!");
+      return;
+    }
+
     if (taskDescription.trim() === "") {
       alert("Task description cannot be empty!");
       return;
     }
-  
+
     try {
       const response = await fetch(`${TASK_API_END_POINT}/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // Include the authorization token
         },
         body: JSON.stringify({
-          title: taskDescription,
+          title: taskTitle,
           description: taskDescription,
-          due_date: new Date(),
-          priority: "Medium",
+          due_date: taskDueDate,
+          priority: taskPriority,
           completed: false,
         }),
       });
-  
+
+      const contentType = response.headers.get("content-type");
+      let responseData;
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+      }
+      console.log("Response data:", responseData); // Log the response data for debugging
+
       if (response.ok) {
         fetchTasks();
-        setTaskDescription("");
+        setTaskTitle(""); // Reset task title
+        setTaskDescription(""); // Reset task description
+        setTaskPriority("Medium"); // Reset task priority
+        setTaskDueDate(new Date()); // Reset task due date
         alert("Task added successfully!");
       } else {
-        console.error("Failed to add task");
+        console.error("Failed to add task:", responseData);
         alert("There was an error adding the task. Please try again.");
       }
     } catch (error) {
       console.error("Error adding task:", error);
-      alert("There was an error adding the task. Please check your network connection.");
+      alert(
+        "There was an error adding the task. Please check your network connection."
+      );
     }
   };
-  
+
   const deleteTask = async (id) => {
     try {
       const response = await fetch(`${TASK_API_END_POINT}/delete/${id}`, {
@@ -85,7 +153,7 @@ const TaskScreen = () => {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (response.ok) {
         fetchTasks();
         alert("Task deleted successfully!");
@@ -95,10 +163,12 @@ const TaskScreen = () => {
       }
     } catch (error) {
       console.error("Error deleting task:", error);
-      alert("There was an error deleting the task. Please check your network connection.");
+      alert(
+        "There was an error deleting the task. Please check your network connection."
+      );
     }
   };
-  
+
   // Sample motivational quotes
   const quotes = [
     "The secret of getting ahead is getting started.",
@@ -114,40 +184,150 @@ const TaskScreen = () => {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ backgroundColor: "white", flex: 1 }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{
+          flexGrow: 1,
+          backgroundColor: "white",
+        }}
       >
         <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerText}>Task Manager</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <Text style={styles.emoji}>❓</Text>
-            </TouchableOpacity>
+          <View style={{ paddingBottom: 30 }}>
+            <Text style={{ fontSize: 50, fontWeight: "bold" }}>New Task</Text>
           </View>
 
-          {/* Add Task Bar */}
-          <View style={styles.addTaskBar}>
-            <TextInput
-              style={styles.input}
-              placeholder="Add a new task..."
-              placeholderTextColor="#aaa"
-              value={taskDescription}
-              onChangeText={setTaskDescription}
-            />
+          {/* Task Ttile*/}
+          <View style={{}}>
+            <View style={{ padding: 10, paddingLeft: 0 }}>
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: "grey" }}>
+                TITLE:{" "}
+              </Text>
+            </View>
+
+            <View style={{}}>
+              <TextInput
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  borderRadius: 10,
+                  padding: 10,
+                  fontSize: 16,
+                  flex: 1,
+                  marginBottom: 20,
+                  height: 50,
+                  borderWidth: 1,
+                  borderColor: "#b3d9ff",
+                  borderTopWidth: 0,
+                  fontSize: 20,
+                  fontWeight: "900",
+                }}
+                placeholder="Add task title..."
+                placeholderTextColor="#aaa"
+                value={taskTitle}
+                onChangeText={setTaskTitle}
+              />
+            </View>
           </View>
 
           {/* Task Description */}
-          <View style={styles.addTaskDesc}>
-            <TextInput
-              style={styles.input}
-              placeholder="Add task Description..."
-              placeholderTextColor="#aaa"
-              value={taskDescription}
-              onChangeText={setTaskDescription}
-            />
+          <View >
+            <View style={{ padding: 10, paddingLeft: 0 }}>
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: "grey" }}>
+                DESCRIPTION{" "}
+              </Text>
+            </View>
+            <View style={styles.addTaskDesc}>
+              <TextInput
+                style={styles.input}
+                placeholder="Add task Description..."
+                placeholderTextColor="#aaa"
+                value={taskDescription}
+                onChangeText={setTaskDescription}
+                multiline={true}
+                scrollEnabled={true}
+                textAlignVertical="top"
+              />
+            </View>
+          </View>
+
+          {/* Task Priority */}
+          <View >
+            <View style={{ padding: 10, paddingLeft: 0 }}>
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: "grey" }}>
+                Priority{" "}
+              </Text>
+            </View>
+            <View style={styles.addTaskPriority}>
+              <Picker
+                selectedValue={taskPriority}
+                onValueChange={(itemValue) => setTaskPriority(itemValue)}
+              >
+                <Picker.Item label="Low" value="Low" />
+                <Picker.Item label="Medium" value="Medium" />
+                <Picker.Item label="High" value="High" />
+              </Picker>
+            </View>
+          </View>
+
+          {/* Task Due Date */}
+
+          <View>
+            <View style={{ padding: 10, paddingLeft: 0 }}>
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: "grey" }}>
+                Due Date
+              </Text>
+            </View>
+            <View style={{borderWidth: 1, borderTopWidth: 0, borderColor: 'black', ...styles.addTaskDueDate}}>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+                <Text style={{ fontSize: 20, color: "black" }}>
+                  {taskDueDate.toDateString()}
+                </Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={taskDueDate}
+                  onChange={handleDateChange}
+                  mode="date"
+                  display="calendar"
+                />
+              )}
+            </View>
+          </View>
+
+          {/* Add Task Button */}
+          <View
+            style={{
+              marginTop: 10,
+              marginBottom: 40,
+              backgroundColor: "pink",
+              height: height * 0.06,
+              borderRadius: 100,
+              width: "80%",
+              shadowColor: "red",
+              shadowOffset: {
+                width: 6,
+                height: 6,
+              },
+              shadowOpacity: 1,
+              shadowRadius: 9,
+              elevation: 10,
+              justifyContent: "center",
+              alignSelf: "center",
+            }}
+          >
+            <TouchableOpacity style={{}} onPress={addTask}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  color: "black",
+                }}
+              >
+                Add Task
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* User Tasks */}
@@ -158,42 +338,12 @@ const TaskScreen = () => {
             </Text>
           </ScrollView>
 
-          {/* Add Task Button */}
-          <TouchableOpacity
-            style={styles.addTaskButton}
-            onPress={() => alert(`Task Added: ${taskDescription}`)}
-          >
-            <Text style={styles.buttonText}>Add Task</Text>
-          </TouchableOpacity>
-
           {/* Quotes about Tasks */}
-          <View style={styles.randmQuotes}>
+          {/* <View style={styles.randmQuotes}>
             <Text style={styles.quoteText}>"{randomQuote}"</Text>
-          </View>
+          </View>*/}
         </View>
       </ScrollView>
-
-      <Modal
-        animationType=""
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>
-              Welcome to the Session Screen {"\n"}
-              {"\n"}
-              Instructions: {"\n"}
-              {"\n"}
-              1. selecte start time {"\n"}
-              2. select end time {"\n"}
-              3. selecet reminder
-            </Text>
-            <Button onPress={() => setModalVisible(false)} title="Close" />
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -201,68 +351,94 @@ const TaskScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "white", // Light cyan background
     padding: 20,
   },
   addTaskBar: {
-    marginBottom: 20,
+    backgroundColor: "#e6f7ff",
   },
   input: {
-    backgroundColor: "#444",
-    color: "#fff",
+    flex: 1,
+    justifyContent: "flex-start",
+    backgroundColor: "#ffffff", // White background for input
+    color: "#333333", // Dark grey text color
     borderRadius: 10,
     padding: 10,
     fontSize: 16,
-    flex: 1,
-    marginBottom: 20,
+    flexWrap: "wrap",
     height: 50,
+    fontSize: 20,
+    fontWeight: "900",
+    borderWidth: 1,
+    borderColor: "#b3d9ff", // Light blue border color
   },
   header: {
-    backgroundColor: '#555',
-    alignItems: 'center',
+    backgroundColor: "#007acc", // Deep sky blue background for header
+    alignItems: "center",
     borderRadius: 10,
-    marginBottom: 15,
     padding: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   headerText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#ffffff", // White text color
   },
   emoji: {
-    fontSize: 20,
+    fontSize: 24,
     marginLeft: 10,
   },
   addTaskDesc: {
     flex: 1,
-    backgroundColor: "#444",
-    padding: 15,
+    backgroundColor: "#ffffff", // White background for description
+    padding: 10,
     borderRadius: 10,
     marginBottom: 20,
-    height: 200,
+    height: height * 0.2,
+    borderWidth: 1,
+    borderColor: "#b3d9ff", // Light blue border color
+  },
+  addTaskPriority: {
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#b3d9ff", // Light blue border color
+    borderRadius: 10,
+    backgroundColor: "#ffffff", // White background for picker
+  },
+  addTaskDueDate: {
+    marginBottom: 40,
+    height: 50,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    backgroundColor: "#ffffff", // White background for due date
+    borderWidth: 1,
+    borderColor: "#b3d9ff", // Light blue border color
   },
   userTasks: {
     flex: 1,
-    backgroundColor: "#444",
+    backgroundColor: "#ffffff", // White background for user tasks
     padding: 15,
     borderRadius: 10,
-    marginBottom: 20,
-    height: 200,
+    marginBottom: 200,
+    height: height * 0.3,
+    borderWidth: 1,
+    borderColor: "#b3d9ff", // Light blue border color
   },
   taskLabel: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#aaa",
+    color: "#007acc", // Deep sky blue text color
     marginBottom: 10,
   },
   taskText: {
     fontSize: 16,
-    color: "#fff",
+    color: "#333333", // Dark grey text color
   },
   addTaskButton: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#007acc", // Deep sky blue background for button
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -270,13 +446,13 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    color: "#fff",
+    color: "#ffffff", // White text color
     fontWeight: "bold",
   },
   randmQuotes: {
     justifyContent: "center",
     alignContent: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#ffffff", // White background for quotes
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -284,7 +460,7 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     fontSize: 16,
-    color: "#333",
+    color: "#007acc", // Deep sky blue text color
     fontStyle: "italic",
     textAlign: "center",
     fontFamily: "PlaywriteCOGuides",
@@ -292,17 +468,17 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: "#ffffff", // White background for modal
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -313,190 +489,18 @@ const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: 'left',
+    textAlign: "left",
+  },
+  shadow: {
+    shadowColor: "black",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 10,
   },
 });
 
 export default TaskScreen;
-
-// import React, { useState, useEffect } from "react";
-// import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Modal, Button, } from "react-native";
-// import { useFonts } from "expo-font";
-
-// const TaskScreen = () => {
-//   const [fontsLoaded] = useFonts({
-//     PlaywriteCOGuides: require("../assets/fonts/PlaywriteCOGuides-Regular.ttf"),
-//   });
-//   const [taskDescription, setTaskDescription] = useState("");
-//   const [tasks, setTasks] = useState([]);
-//   const [randomQuote, setRandomQuote] = useState("The secret of getting ahead is getting started.");
-//   const [modalVisible, setModalVisible] = useState(false);
-
-//   useEffect(() => {
-//     fetchTasks();
-//   }, []);
-
-//   if (!fontsLoaded) {
-//     return <Text>Loading...</Text>;
-//   }
-
-//   const fetchTasks = async () => {
-//     try {
-//       const response = await fetch("http://localhost:3000/get");
-//       const data = await response.json();
-//       setTasks(data);
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   const addTask = async () => {
-//     if (taskDescription.trim() === "") {
-//       alert("Task description cannot be empty!");
-//       return;
-//     }
-//     try {
-//       const response = await fetch("http://localhost:3000/add", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           title: taskDescription,
-//           description: taskDescription,
-//           due_date: new Date(),
-//           priority: "Medium",
-//           completed: false,
-//         }),
-//       });
-//       if (response.ok) {
-//         fetchTasks();
-//         setTaskDescription("");
-//       } else {
-//         console.error("Failed to add task");
-//       }
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   const deleteTask = async (id) => {
-//     try {
-//       const response = await fetch(`http://localhost:3000/delete/${id}`, {
-//         method: "DELETE",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//       });
-//       if (response.ok) {
-//         fetchTasks();
-//       } else {
-//         console.error("Failed to delete task");
-//       }
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   const getRandomQuote = () => {
-//     const quotes = [
-//       "The secret of getting ahead is getting started.",
-//       "Don't watch the clock; do what it does. Keep going.",
-//       "The best way to get something done is to begin.",
-//       "Start where you are. Use what you have. Do what you can.",
-//     ];
-//     const randomIndex = Math.floor(Math.random() * quotes.length);
-//     setRandomQuote(quotes[randomIndex]);
-//   };
-
-//   return (
-//     <SafeAreaView>
-//       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-//         <View style={styles.container}>
-//           <View style={styles.header}>
-//             <Text style={styles.headerText}>Task Manager</Text>
-//             <TouchableOpacity onPress={() => setModalVisible(true)}>
-//               <Text style={styles.emoji}>❓</Text>
-//             </TouchableOpacity>
-//           </View>
-
-//           <View style={styles.addTaskBar}>
-//             <TextInput
-//               style={styles.input}
-//               placeholder="Add a new task..."
-//               placeholderTextColor="#aaa"
-//               value={taskDescription}
-//               onChangeText={setTaskDescription}
-//             />
-//             <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
-//               <Text style={styles.buttonText}>Add Task</Text>
-//             </TouchableOpacity>
-//           </View>
-
-//           <View style={styles.userTasks}>
-//             <Text style={styles.taskLabel}>Your Tasks:</Text>
-//             {tasks.length === 0 ? (
-//               <Text style={styles.taskText}>No tasks added yet!</Text>
-//             ) : (
-//               tasks.map((task) => (
-//                 <View key={task.id} style={styles.taskItem}>
-//                   <Text style={styles.taskText}>{task.description}</Text>
-//                   <TouchableOpacity onPress={() => deleteTask(task.id)}>
-//                     <Text style={styles.deleteButton}>Delete</Text>
-//                   </TouchableOpacity>
-//                 </View>
-//               ))
-//             )}
-//           </View>
-
-//           <View style={styles.randmQuotes}>
-//             <Text style={styles.quoteText}>"{randomQuote}"</Text>
-//             <TouchableOpacity onPress={getRandomQuote}>
-//               <Text style={styles.quoteButton}>Get Random Quote</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-//       </ScrollView>
-
-//       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
-//         <View style={styles.centeredView}>
-//           <View style={styles.modalView}>
-//             <Text style={styles.modalText}>
-//               Welcome to the Session Screen {"\n"}
-//               {"\n"}
-//               Instructions: {"\n"}
-//               {"\n"}
-//               1. Select start time {"\n"}
-//               2. Select end time {"\n"}
-//               3. Select reminder
-//             </Text>
-//             <Button onPress={() => setModalVisible(false)} title="Close" />
-//           </View>
-//         </View>
-//       </Modal>
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#F5F5F5",
-//     padding: 20,
-//   },
-//   addTaskBar: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     marginBottom: 20,
-//   },
-//   input: {
-//     backgroundColor: "#444",
-//     color: "#fff",
-//     borderRadius: 10,
-//     padding: 10,
-//     fontSize: 16,
-//     flex: 1,
-//     marginRight: 10,
-//   },
-//   header: {
-//     backgroundColor: '#555',
