@@ -93,7 +93,8 @@ const login = ("/login", async (req, res) => {
         return res.status(200).cookie("token", token, {maxAge: 1*24*60*60*1000, httpOnly: true, samSite: 'strict'}).json({
             message: 'Login successful',
             success: true,
-            token: token
+            token: token,
+            username: user.username,
         })
         
     } catch (err) {

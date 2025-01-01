@@ -10,6 +10,7 @@ import translateRoutes from "./routes/nlp/translator.js";
 import languageRoutes from "./routes/nlp/language.js";
 import friendshipRoutes from "./routes/friendships.js";
 import resourceSharingRoutes from "./routes/resourceSharing.js";
+import containerRoutes from "./routes/container.route.js";
 
 // import multer from "multer";
 
@@ -30,6 +31,7 @@ app.use("/api", translateRoutes);
 app.use("/api", languageRoutes);
 app.use("/api/friendship", friendshipRoutes);
 app.use("/api/resource", resourceSharingRoutes);
+app.use("/api/container", containerRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
