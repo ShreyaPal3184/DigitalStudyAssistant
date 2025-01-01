@@ -19,6 +19,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import NotificationCheckbox from "../components/NotificationCheckbox";
 import colors from "../styles/colors";
 
+const {width, height} = Dimensions.get('window');
+
 const StudySessionScreen = () => {
   const width = 600;
   const images = [
@@ -76,11 +78,12 @@ const StudySessionScreen = () => {
           <View
             style={{
               width: "100%",
-              backgroundColor: "pink",
-              borderRadius: 15,
-              height: 55,
+              backgroundColor: "lightblue",
+              borderBottomRightRadius: 25,
+              borderTopRightRadius: 25, 
+              height: height*0.06,
+
               justifyContent: "center",
-              marginTop: 15,
               shadowColor: "black",
               shadowOffset: {
                 width: 6,
@@ -99,7 +102,7 @@ const StudySessionScreen = () => {
               justifyContent: "space-",
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#FFDAB9",
+              backgroundColor: "white",
               borderRadius: 15,
               ...styles.boxShadow,
             }}
@@ -287,7 +290,7 @@ const StudySessionScreen = () => {
                 Techniques
               </Text>
             </View>
-            <View
+            {/* <View
               style={{
                 justifyContent: "center",
                 alignItems: "center",
@@ -324,7 +327,7 @@ const StudySessionScreen = () => {
                   </View>
                 )}
               />
-            </View>
+            </View> */}
             <View style={{ justifyContent: "center", alignItems: "center" }}>
               <Dropdown
                 style={styles.dropdown}
@@ -501,7 +504,7 @@ const StudySessionScreen = () => {
             <View
               style={{
                 marginTop: 10,
-                backgroundColor: "#FF00FF",
+                backgroundColor: "white",
                 height: 50,
                 borderRadius: 100,
                 width: "80%",
@@ -522,6 +525,7 @@ const StudySessionScreen = () => {
                     fontSize: 16,
                     fontWeight: "bold",
                     textAlign: "center",
+                    color: 'black'
                   }}
                 >
                   Add Session
@@ -542,14 +546,13 @@ const StudySessionScreen = () => {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: "#FDCEA5", // Fixed background color
+    backgroundColor: "white", // Fixed background color
   },
   scrollViewContent: {
     flexGrow: 1,
-    padding: 10, // Added padding inside the ScrollView
   },
   content: {
-    backgroundColor: "#FDCEA5", // Fixed background color
+    backgroundColor: "white", // Fixed background color
     flex: 1,
     padding: 10,
   },
@@ -571,7 +574,7 @@ const styles = StyleSheet.create({
     maxHeight: 300,
     padding: 10,
     marginTop: 15,
-    backgroundColor: "#FFDAB9",
+    backgroundColor: "white",
     borderRadius: 15,
     shadowColor: "blue",
     shadowOffset: {

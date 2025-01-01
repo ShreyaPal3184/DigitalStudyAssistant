@@ -7,6 +7,12 @@ import Tabs from "./components/Tabs"; // Import your Tabs component
 import AddFile from "./screens/AddFileScreen";
 import OnboardingScreen from "./screens/OnboardingScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import AppNavigator from "./HamburgerNavigation/AppNavigator";
+import "react-native-gesture-handler";
+import AboutusScreen from "./screens/AboutusScreen";
+import FAQScreen from "./screens/FAQScreen";
+import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
+import UserDataProtectionScreen from "./screens/UserDataProtectionScreen";
 
 const Stack = createStackNavigator();
 
@@ -92,7 +98,13 @@ export default function App() {
 
           <Stack.Screen name="AddFile" component={AddFile} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="HamburgerMenu" component={AppNavigator} />
+          <Stack.Screen name="AboutUs" component={AboutusScreen} />
+          <Stack.Screen name="FAQ" component={FAQScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+          <Stack.Screen name="UserDataProtection" component={UserDataProtectionScreen} />
         </Stack.Navigator>
+
       </NavigationContainer>
   );
 }
