@@ -6,9 +6,9 @@ const router = express.Router();
 router.post("/add", authenticateToken, sessionsController.addSession);
 router.get("/get", sessionsController.getSession);
 router.get("/get/:id", sessionsController.getSessionById);
-router.get("/user", sessionsController.getUserSession);
+router.get("/user", authenticateToken, sessionsController.getUserSession);
 router.put("/delete/:id", authenticateToken, sessionsController.deleteSession);
-router.get("/upcoming", sessionsController.getUpcomingSession);
+router.get("/upcoming", authenticateToken, sessionsController.getUpcomingSession);
 router.get("/summary/:sessionId", authenticateToken, sessionsController.getSessionSummary);
 router.put("/update/:id", authenticateToken, sessionsController.updateSession);
 

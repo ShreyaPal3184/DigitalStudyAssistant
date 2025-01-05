@@ -23,10 +23,11 @@ const addSession = ("/add", authenticateToken, async (req, res) => {
             .input("end_time", sql.DateTime, end_time)
             .input("status", sql.VarChar, "scheduled") // Set initial status to "scheduled"
             .input("reminders", sql.Bit, reminders)
-            .input("date_created", sql.DateTime, new Date())
-            .query("INSERT INTO sessions (user_id, subject, start_time, end_time, reminders, status, date_created) VALUES (@userId, @subject, @start_time, @end_time, @reminders, @status, @date_created)");
+            .query("INSERT INTO sessions (user_id, subject, start_time, end_time, reminders, status) VALUES (@userId, @subject, @start_time, @end_time, @reminders, @status, @date_created)");
 
-        res.status(201).json({message: "Session created successfully."});
+        res.status(201).json({
+            message: "Session created successfully."
+        });
 
     } catch(err) { 
         res.status(500);
@@ -141,9 +142,11 @@ const getUpcomingSession = ("/upcoming", authenticateToken, async (req, res) => 
     }
 }); 
 
-const getSessionSummary = async (req, res) => {
+const getSessionSummary = (authenticateToken, async (req, res) => {
   const { sessionId } = req.params;
   const userId = req.user.userId;
+  console.log(userId);
+  
 
   try {
     let pool = await sql.connect(config);
@@ -159,6 +162,7 @@ const getSessionSummary = async (req, res) => {
 
     const tasksResult = await pool.request()
       .input("sessionId", sql.Int, sessionId)
+      .input("userId", sql.Int, userId)
       .query("SELECT * FROM tasks WHERE session_id = @sessionId AND user_id = @userId AND completed = 1");
 
     const sessionSummary = {
@@ -172,7 +176,7 @@ const getSessionSummary = async (req, res) => {
     res.status(500);
     res.send(err.message);
   }
-};
+});
 
 const updateSession = async (req, res) => {
   const { id } = req.params;
