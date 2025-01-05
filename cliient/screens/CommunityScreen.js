@@ -10,7 +10,9 @@ const Tab = createMaterialTopTabNavigator();
 const CommunityScreen = () => {
   return (
     <Tab.Navigator
-    style={{borderBottomRightRadius: 30, borderBottomLeftRadius: 30}}
+      initialRouteName="Friends"
+      backBehavior="initialRoute" // Set backBehavior to "initialRoute"
+      style={{borderBottomRightRadius: 30, borderBottomLeftRadius: 30}}
       screenOptions={{
         tabBarActiveTintColor: "black", 
         tabBarInactiveTintColor: "gray", 

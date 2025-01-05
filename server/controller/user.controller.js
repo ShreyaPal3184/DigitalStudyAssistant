@@ -19,6 +19,8 @@ const register = ("/register", async (req, res) => {
 
     if (!username || !email || !password || !confirmPassword || notifications === undefined) {
         return res.status(400).send("Missing entries");
+    }else if(password.length < 8) {
+        return res.status(400).send("Password must be at least 8 characters long.");
     }
 
     if (password !== confirmPassword) {
@@ -95,6 +97,8 @@ const login = ("/login", async (req, res) => {
             success: true,
             token: token,
             username: user.username,
+            userId: user.userId,
+            userEmail: user.email
         })
         
     } catch (err) {
@@ -167,4 +171,30 @@ const updateUser = ("/update/:id", async (req, res) => {
     }
 });
 
-export default { register, login, getUsers, getUserById, updateUser };
+const getUserSummary = async (req, res) => {
+    const { userId } = req.params;
+   
+    try {
+      let pool = await sql.connect(config);
+  
+      const sessionsResult = await pool.request()
+        .input("userId", sql.Int, userId)
+        .query("SELECT COUNT(*) AS totalSessions FROM sessions WHERE user_id = @userId AND is_active = 1");
+  
+      const tasksResult = await pool.request()
+        .input("userId", sql.Int, userId)
+        .query("SELECT COUNT(*) AS totalTasks FROM tasks WHERE user_id = @userId AND completed = 1");
+  
+      const userSummary = {
+        totalSessions: sessionsResult.recordset[0].totalSessions,
+        totalTasks: tasksResult.recordset[0].totalTasks
+      };
+  
+      res.status(200).json(userSummary);
+    } catch (err) {
+      res.status(500);
+      res.send(err.message);
+    }
+  };
+
+export default { register, login, getUsers, getUserById, updateUser, getUserSummary };

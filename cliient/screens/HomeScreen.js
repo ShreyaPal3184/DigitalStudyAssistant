@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,16 +11,23 @@ import {
   Pressable,
   Dimensions,
   Button,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TASK_API_END_POINT, SESSION_API_END_POINT } from "../utils/constant";
 
 // Get the screen dimensions for responsiveness
 const { width, height } = Dimensions.get("window");
 
 const HomeScreen = () => {
-  const [modalVisible, setModalVisible] = useState(false);
   const [username, setUsername] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [token, setToken] = useState("");
+  const [upcomingSession, setUpcomingSession] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
 
@@ -86,18 +93,177 @@ const HomeScreen = () => {
   const prevDay = prevDate.getDate();
   const nextDay = nextDate.getDate();
 
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        if (storedToken) {
+          setToken(storedToken);
+        }
+      } catch (error) {
+        console.error("Failed to fetch token from AsyncStorage:", error);
+      }
+    };
+
+    fetchToken();
+  }, []);
+
+  //fetch sessions
+  useEffect(() => {
+    if (token) {
+      fetchTasks();
+      // fetchUpcomingSession();
+    }
+  }, [token]);
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch(`${TASK_API_END_POINT}/user`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        Alert.alert("Unauthorized", "Please log in again.");
+        return;
+      }
+
+      const contentType = response.headers.get("content-type");
+      let responseData;
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+        console.error("Unexpected response format:", responseData);
+        return;
+      }
+
+      if (response.ok) {
+        setTasks(responseData);
+      } else {
+        console.error("Failed to fetch tasks:", responseData);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  //fetch sessions
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const fetchSessions = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await fetch(`${SESSION_API_END_POINT}/get`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        setSessions(responseData);
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to fetch sessions.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
+
+  // const fetchUpcomingSession = async () => {
+  //   try {
+  //     const response = await fetch(`${SESSION_API_END_POINT}/upcoming`, {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     if (response.status === 401) {
+  //       Alert.alert("Unauthorized", "Please log in again.");
+  //       return;
+  //     }
+
+  //     const contentType = response.headers.get("content-type");
+  //     let responseData;
+  //     if (contentType && contentType.includes("application/json")) {
+  //       responseData = await response.json();
+  //     } else {
+  //       responseData = await response.text();
+  //       console.error("Unexpected response format:", responseData);
+  //       return;
+  //     }
+
+  //     if (response.ok) {
+  //       setUpcomingSession(responseData);
+  //     } else {
+  //       Alert.alert("Error", responseData.message || "Failed to fetch upcoming session.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching upcoming session:", error);
+  //     Alert.alert("Error", error.message || "An error occurred.");
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   const fetchStoredUpcomingSession = async () => {
+  //     try {
+  //       const storedSession = await AsyncStorage.getItem("upcomingSession");
+  //       if (storedSession) {
+  //         setUpcomingSession(JSON.parse(storedSession));
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch upcoming session from AsyncStorage:", error);
+  //     }
+  //   };
+
+  //   fetchStoredUpcomingSession();
+  // }, []);
+
+  const colors = [
+    "#F2E3A1", // Original
+  "#F7E8B0", // Lighter shade
+  "#ECE09A", // Slightly darker
+  "#FFF2C3", // Pale yellow
+  "#E8D891", // Muted gold
+  "#D9C77A", // Deeper tone
+  "#FAEDB5", // Soft pastel
+  "#F1E09F", // Slightly warmer
+  "#EFE6B0", // Neutral beige
+  "#E6D99C"  // Subtle brownish tint
+
+  ];
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchTasks();
+    // fetchUpcomingSession();
+    setRefreshing(false);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            margin: 20,
           }}
         >
           <TouchableOpacity onPress={() => console.log("hamburger menu")}>
@@ -115,7 +281,7 @@ const HomeScreen = () => {
           >
             {/* Bell Icon */}
             <TouchableOpacity
-              onPress={() => setModalVisible(true)}
+              onPress={() => navigation.navigate("NotificationScreen")}
               style={{
                 backgroundColor: "white",
                 borderRadius: 100,
@@ -154,16 +320,16 @@ const HomeScreen = () => {
         </View>
 
         {/* user */}
-        <View style={{ padding: 15 }}>
+        <View style={{ paddingTop: 20 }}>
           <Text style={{ fontSize: 50, fontWeight: "400" }}>Hello,</Text>
           <Text
             style={{ fontSize: 50, fontWeight: "bold", ...styles.textShadow }}
           >
-            {username} {" "}👋
+            {username} 👋
           </Text>
         </View>
 
-        <View style={{ padding: 15 }}>
+        <View style={{ paddingTop: 20 }}>
           <Text style={{ fontSize: 30, fontWeight: "300" }}>
             What are you going to do today?
           </Text>
@@ -204,40 +370,167 @@ const HomeScreen = () => {
             </View>
           </View>
           <Text style={{ padding: 5, fontSize: 18, color: "grey" }}>
-          {monthName}, {weekDayName}, {year}
+            {monthName}, {weekDayName}, {year}
           </Text>
         </View>
 
-        {/* Notifications Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Notifications</Text>
-              <ScrollView>
-                <Text style={styles.notificationText}>
-                  - You have a new message.
-                </Text>
-                <Text style={styles.notificationText}>
-                  - Your session starts in 10 minutes.
-                </Text>
-                <Text style={styles.notificationText}>
-                  - Reminder: Complete your task for today.
-                </Text>
-              </ScrollView>
-              <Pressable
-                style={styles.closeButton}
-                onPress={() => setModalVisible(false)}
+        {/* my tasks */}
+        <View style={{ paddingTop: 20 }}>
+          <Text style={{ fontSize: 35, fontWeight: "bold" }}>my tasks: </Text>
+          <View style={{ paddingTop: 20, backgroundColor: "white", borderRadius: 20 }}>
+            {tasks.length === 0 ? (
+              <Text style={{ fontSize: 18, color: "grey" }}>
+                No tasks found.
+              </Text>
+            ) : (
+              <ScrollView
+                style={{ borderRadius: 10, height: height * 0.45, }}
+                contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}
+                nestedScrollEnabled={true}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
               >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </Pressable>
-            </View>
+                {tasks.map((task, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      marginBottom: 50,
+                      height: height * 0.17,
+                      width: width * 0.9,
+                      backgroundColor: (task.priority === "High" ? 'red' :(task.priority === "Medium" ? 'orange' : 'green')),
+                      borderBottomRightRadius: 0,
+                      shadowColor: colors[index % colors.length],
+                      shadowOffset: {
+                        width: 0,
+                        height: 10,
+                      },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 3.5,
+                      elevation: 10,
+                      borderRadius: 20,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignSelf: "flex-end",
+                        width: width * 0.86,
+                        height: height * 0.14,
+                        padding: 20,
+                        borderWidth: 1,
+                        borderTopColor: 'grey',
+                        borderRadius: 20,
+                        borderBottomRightRadius: 0,
+                        backgroundColor: "white",
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "white",
+                          borderRadius: 35,
+                          padding: 1,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Image
+                          source={require("../assets/checklist.png")}
+                          style={{ height: 75, width: 75 }}
+                        />
+                      </View>
+                      <View style={{ flexDirection: "column", width: "67%" }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginBottom: 5,
+                          }}
+                        >
+                          <Text style={{ fontSize: 24, fontWeight: "bold" }}>
+                            {task.title}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginBottom: 5,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: "grey",
+                              paddingRight: 5,
+                            }}
+                          >
+                            due date:{" "}
+                          </Text>
+                          <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                            {new Date(task.due_date).toDateString()}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: "grey",
+                              paddingRight: 5,
+                            }}
+                          >
+                            priority:{" "}
+                          </Text>
+                          <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                            {task.priority}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={{flexDirection: 'row', alignSelf: 'flex-end'}}>
+                    <TouchableOpacity onPress={() => deleteTask(task.id)} style={{ backgroundColor: "white", borderRadius: 10, padding: 10, width: width*0.32, alignSelf: "flex-end", borderColor: colors[index % colors.length], borderBottomRightRadius: 0, borderTopRightRadius:0, borderWidth:1,borderColor: 'black' }}>
+                      <Text style={{textAlign:'center', fontSize: 20}}>Task Complete</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => deleteTask(task.id)} style={{ backgroundColor: "white", padding: 10, alignSelf: "flex-end", borderColor: colors[index % colors.length], borderBottomRightRadius: 0, borderTopRightRadius:0, borderWidth:1,borderColor: 'black' }}>
+                      <Image source={require("../assets/delete.png")} style={{height: 24, width: 25}}/>
+                    </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
           </View>
-        </Modal>
+        </View>
+
+        {/* upcoming session */}
+        {/* <View>
+          <Text style={{ fontSize: 35, fontWeight: "bold", paddingTop: 20 }}>
+            upcoming session:
+          </Text>
+          {upcomingSession ? (
+            <View style={{ marginTop: 10, paddingTop: 20, borderWidth: 1, borderColor: "grey", borderRadius: 20, backgroundColor: "white", padding: 20, width: width * 0.9, height: height * 0.25 }}>
+              <Text style={{ fontSize: 24, fontWeight: "bold" }}>{upcomingSession.subject}</Text>
+              <Text style={{ fontSize: 18, color: "grey" }}>Start Time: {new Date(upcomingSession.start_time).toLocaleTimeString()}</Text>
+              <Text style={{ fontSize: 18, color: "grey" }}>End Time: {new Date(upcomingSession.end_time).toLocaleTimeString()}</Text>
+              <Text style={{ fontSize: 18, color: "grey" }}>Status: {upcomingSession.status}</Text>
+            </View>
+          ) : (
+            <Text style={{ fontSize: 18, color: "grey" }}>No upcoming sessions found.</Text>
+          )}
+        </View> */}
+
+        <View style={{backgroundColor:'white', justifyContent: 'center', alignItems: 'center', padding: 20, borderRadius: 20, marginTop: 20}}>
+          <TouchableOpacity onPress={()=>navigation.navigate('StartstudyingScreen')} style={{  borderRadius: 10, padding: 20, width: "80%", alignSelf: "center", marginTop: 20, borderWidth: 1, borderColor: 'black' }}>
+            <Text style={{fontSize: 24, textAlign: 'center'}}>Start Studying</Text>
+          </TouchableOpacity>
+        </View>
+
+   
       </ScrollView>
     </SafeAreaView>
   );
@@ -245,12 +538,13 @@ const HomeScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: "white",
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
+    paddingBottom: 100,
+    padding: 20,
   },
   header: {
     flexDirection: "row",
@@ -278,26 +572,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  modalContent: {
-    width: "80%",
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
   },
   notificationText: {
     fontSize: 16,

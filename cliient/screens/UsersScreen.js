@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, BackHandler } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { token } from '../utils/constant';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-const UsersScreen = () => {
+function UsersScreen() {
   const [users, setUsers] = useState([]);
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [currentView, setCurrentView] = useState('users'); // Tracks which list to show
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
-  const saveToken = async (token) => {
+  const getToken = async () => {
     try {
-      await AsyncStorage.setItem('authToken', token);
-    } catch (error) {
-      console.error('Error saving token:', error);
+      return await AsyncStorage.getItem('userToken');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to get token from storage.');
     }
   };
 
-  const getToken = "";
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -39,7 +39,7 @@ const UsersScreen = () => {
   const fetchFriends = async () => {
     try {
       setLoading(true);
-      const token = getToken;
+      const token = await getToken();
 
       if (!token) {
         Alert.alert('Error', 'Authentication token is missing.');
@@ -47,19 +47,16 @@ const UsersScreen = () => {
         return;
       }
 
-      const response = await axios.get('https://dsasp-api.azurewebsites.net/api/friendship/friends', {
+      const response = await axios.get('https://dsasp-api.azurewebsites.net/api/friendship/get', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log(response.data);
-      
-
-      if(!response.data) {
+      if (!response.data) {
         Alert.alert('Error', 'No friends found.');
         setLoading(false);
-        return
+        return;
       }
 
       setFriends(response.data);
@@ -74,7 +71,7 @@ const UsersScreen = () => {
   const fetchFriendRequests = async () => {
     try {
       setLoading(true);
-      const token = getToken;
+      const token = await getToken();
 
       if (!token) {
         Alert.alert('Error', 'Authentication token is missing.');
@@ -98,14 +95,14 @@ const UsersScreen = () => {
 
   const addFriend = async (userId) => {
     try {
-      const token =  getToken;
+      const token = await getToken();
 
       if (!token) {
         Alert.alert('Error', 'Authentication token is missing.');
         return;
       }
 
-      const response = await axios.post( `https://dsasp-api.azurewebsites.net/api/friendship/add`,
+      const response = await axios.post(`https://dsasp-api.azurewebsites.net/api/friendship/add`,
         { friendId: userId },
         {
           headers: {
@@ -115,9 +112,11 @@ const UsersScreen = () => {
       );
       Alert.alert('Success', `Friend request sent to user with ID ${userId}`);
     } catch (err) {
-      Alert.alert('Error', err.message || 'Failed to add friend.');
+      Alert.alert('Failed to add friend.');
     }
   };
+
+  const keyExtractor = (item, index) => (item.id ? item.id.toString() : index.toString());
 
   const renderUser = ({ item }) => (
     <View style={styles.userItem}>
@@ -125,8 +124,7 @@ const UsersScreen = () => {
       <Button
         title="Add"
         onPress={() => addFriend(item.id)}
-        color="#007AFF"
-      />
+        color="#007AFF" />
     </View>
   );
 
@@ -140,6 +138,21 @@ const UsersScreen = () => {
     <View style={styles.userItem}>
       <Text style={styles.userName}>Name: {item.username}</Text>
     </View>
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigation.navigate('Blog');
+        return true;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [navigation])
   );
 
   if (loading) {
@@ -162,7 +175,7 @@ const UsersScreen = () => {
     <View style={styles.container}>
       <Text style={styles.heading}>Users</Text>
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={fetchFriends}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('MyFriendsScreen')}>
           <Text style={styles.buttonText}>My Friends</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={fetchFriendRequests}>
@@ -170,25 +183,20 @@ const UsersScreen = () => {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={
-          currentView === 'users'
-            ? users
-            : currentView === 'friends'
+        data={currentView === 'users'
+          ? users
+          : currentView === 'friends'
             ? friends
-            : friendRequests
-        }
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={
-          currentView === 'users'
-            ? renderUser
-            : currentView === 'friends'
+            : friendRequests}
+        keyExtractor={keyExtractor}
+        renderItem={currentView === 'users'
+          ? renderUser
+          : currentView === 'friends'
             ? renderFriend
-            : renderFriendRequest
-        }
-      />
+            : renderFriendRequest} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -200,7 +208,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     marginBottom: 20,
-    fontWeight: 'bold',
+    fontWeight: 'bold', 
   },
   buttonRow: {
     flexDirection: 'row',
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: 'black',
     padding: 10,
     marginHorizontal: 5,
     borderRadius: 8,

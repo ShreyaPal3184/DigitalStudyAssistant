@@ -63,7 +63,7 @@ const ProfileScreen = () => {
           >
             <Text style={{ fontSize: 24 }}>Profile</Text>
             <TouchableOpacity
-              onPress={() => console.log("Edit profile.")}
+              onPress={() => navigation.navigate("EditProfile")}
               style={{ alignSelf: "flex-end" }}
             >
               <Image

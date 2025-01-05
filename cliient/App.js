@@ -13,6 +13,10 @@ import AboutusScreen from "./screens/AboutusScreen";
 import FAQScreen from "./screens/FAQScreen";
 import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
 import UserDataProtectionScreen from "./screens/UserDataProtectionScreen";
+import NotificationsScreen from "./screens/NotificationsScreen";
+import EditProfileScreen from "./screens/EditProfileScreen";
+import CommunityScreen from "./screens/CommunityScreen";
+import MyFriendsScreen from "./screens/MyfriendsScreen";
 
 const Stack = createStackNavigator();
 
@@ -103,6 +107,9 @@ export default function App() {
           <Stack.Screen name="FAQ" component={FAQScreen} />
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
           <Stack.Screen name="UserDataProtection" component={UserDataProtectionScreen} />
+          <Stack.Screen name="NotificationScreen" component={NotificationsScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="Myfriends" component={MyFriendsScreen} />
         </Stack.Navigator>
 
       </NavigationContainer>

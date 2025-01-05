@@ -11,5 +11,6 @@ router.get("/get", tasksController.getTask);
 router.get("/get/:id", tasksController.getTaskById);
 router.get("/user", authenticateToken, tasksController.getUserTask);
 router.put("/delete/:id", authenticateToken, tasksController.deleteTask);
+router.put("/update/:id", authenticateToken, tasksController.updateTask);
 
-export default router;
+export default router; 

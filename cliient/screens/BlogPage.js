@@ -5,7 +5,7 @@ import axios from 'axios';
 const BlobPage = ({ navigation }) => {
   const [blobs, setBlobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
     const fetchBlobs = async () => {
