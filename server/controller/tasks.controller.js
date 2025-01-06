@@ -129,38 +129,4 @@ const deleteTask = ("/delete/:id", authenticateToken, async (req, res) => {
     }
 });
 
-const updateTask = ( "/update/:id", authenticateToken, async (req, res) => {
-    const id = req.params.id;
-    const userId = req.user.userId;
-    const { title, description, due_date, priority, completed } = req.body;
-
-    if (!title || !description || !due_date || !priority || completed === undefined) {
-        return res.status(400).send("Missing entries");
-    }
-
-    try {
-        let pool = await sql.connect(config);
-
-        const result = await pool.request()
-            .input("id", sql.Int, id)
-            .input("userId", sql.Int, userId)
-            .input("title", sql.VarChar, title)
-            .input("description", sql.VarChar, description)
-            .input("due_date", sql.Date, due_date)
-            .input("priority", sql.VarChar, priority)
-            .input("completed", sql.Bit, completed)
-            .query("UPDATE tasks SET title = @title, description = @description, due_date = @due_date, priority = @priority, completed = @completed WHERE id = @id AND user_id = @userId");
-        
-        if(result.rowsAffected[0] === 0) {
-            return res.status(404).send("Task not found.");
-        }
-
-        res.status(200).json({message: "Task updated successfully."});
-
-    } catch(err) {
-        res.status(500);
-        res.send(err.message);
-    }
-});
-
-export default { addTask, getTask, getTaskById, getUserTask, deleteTask, updateTask };
+export default { addTask, getTask, getTaskById, getUserTask, deleteTask };

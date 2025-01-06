@@ -6,10 +6,10 @@ import { authenticateToken } from "../middleware/authMiddleware.js";
 const router = express.Router(); 
 
 const addSession = ("/add", authenticateToken, async (req, res) => {
-    const { subject, start_time, end_time, reminders } = req.body;
+    const { subject, start_time, end_time, reminders, status } = req.body;
     const userId = req.user.userId;
 
-    if (!subject || !start_time || !end_time || reminders === undefined) {
+    if (!subject || !start_time || !end_time || !status || reminders === undefined  ) {
         return res.status(400).send("Missing entries");
     }
  
@@ -21,7 +21,7 @@ const addSession = ("/add", authenticateToken, async (req, res) => {
             .input("subject", sql.VarChar, subject)
             .input("start_time", sql.DateTime, start_time)
             .input("end_time", sql.DateTime, end_time)
-            .input("status", sql.VarChar, "scheduled") // Set initial status to "scheduled"
+            .input("status", sql.VarChar, status)
             .input("reminders", sql.Bit, reminders)
             .query("INSERT INTO sessions (user_id, subject, start_time, end_time, reminders, status) VALUES (@userId, @subject, @start_time, @end_time, @reminders, @status)");
 
@@ -121,6 +121,7 @@ const deleteSession = ("/delete/:id", authenticateToken, async (req, res) => {
     }
 });
 
+//for to do list within sessions
 const getUpcomingSession = ("/upcoming", authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
@@ -140,7 +141,7 @@ const getUpcomingSession = ("/upcoming", authenticateToken, async (req, res) => 
         res.status(500);
         res.send(err.message);
     }
-}); 
+});
 
 const getSessionSummary = (authenticateToken, async (req, res) => {
   const { sessionId } = req.params;
