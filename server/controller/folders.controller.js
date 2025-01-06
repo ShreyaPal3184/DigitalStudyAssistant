@@ -34,7 +34,7 @@ const createFolder = ("/create", authenticateToken, async (req, res) => {
       .input("name", sql.VarChar, name)
       .input("created_at", sql.DateTime, new Date())
       .input("is_active", sql.Bit, 1)
-      .query("INSERT INTO folders (user_id, name, created_at, is_active) VALUES (@userId, @name, @created_at, 1x)");
+      .query("INSERT INTO folders (user_id, name, created_at, is_active) VALUES (@userId, @name, @created_at, 1)");
 
     res.status(201).json({ message: "Folder created successfully." });
 

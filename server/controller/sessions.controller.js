@@ -23,7 +23,7 @@ const addSession = ("/add", authenticateToken, async (req, res) => {
             .input("end_time", sql.DateTime, end_time)
             .input("status", sql.VarChar, "scheduled") // Set initial status to "scheduled"
             .input("reminders", sql.Bit, reminders)
-            .query("INSERT INTO sessions (user_id, subject, start_time, end_time, reminders, status) VALUES (@userId, @subject, @start_time, @end_time, @reminders, @status, @date_created)");
+            .query("INSERT INTO sessions (user_id, subject, start_time, end_time, reminders, status) VALUES (@userId, @subject, @start_time, @end_time, @reminders, @status)");
 
         res.status(201).json({
             message: "Session created successfully."

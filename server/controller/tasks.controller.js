@@ -78,6 +78,8 @@ const getTaskById = ("/get/:id", async (req, res) => {
 const getUserTask = ("/user", authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
+    console.log(userId);   
+
     try {
         let pool = await sql.connect(config);
 
@@ -88,6 +90,9 @@ const getUserTask = ("/user", authenticateToken, async (req, res) => {
         if(result.recordset.length === 0) {
             return res.status(404).send("No tasks found.");
         }
+
+        console.log(result.recordset);
+        
 
         res.status(200).json(result.recordset);
     } catch(err) {
@@ -100,12 +105,17 @@ const deleteTask = ("/delete/:id", authenticateToken, async (req, res) => {
     const id = req.params.id;
     const userId = req.user.userId;
 
+    console.log(id);
+    console.log(userId);
+    
+
     try {
         let pool = await sql.connect(config);
 
         const result = await pool.request()
             .input("id", sql.Int, id)
-            .query("ALTER TABLE tasks SET is_active = 0 WHERE id = @id AND user_id = @userId");
+            .input("userId", sql.Int, userId)
+            .query("DELETE FROM tasks WHERE id = @id AND user_id = @userId");
         
         if(result.rowsAffected[0] === 0) {
             return res.status(404).send("Task not found.");
