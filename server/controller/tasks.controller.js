@@ -129,4 +129,30 @@ const deleteTask = ("/delete/:id", authenticateToken, async (req, res) => {
     }
 });
 
-export default { addTask, getTask, getTaskById, getUserTask, deleteTask };
+
+const completeTask = ("/complete/:id", authenticateToken, async (req, res) => {
+    const id = req.params.id;
+    const userId = req.user.userId;
+
+    try {
+        let pool = await sql.connect(config);
+
+        const result = await pool.request()
+            .input("id", sql.Int, id)
+            .input("userId", sql.Int, userId)
+            .query("UPDATE tasks SET completed = 1 WHERE id = @id AND user_id = @userID")
+        
+        if(result.rowsAffected[0] === 0) {
+            return res.status(404).send("Task not found.");
+        }
+
+        res.status(200).json({message: "Task completed successfully."});
+        
+    } catch (err) {
+        res.status(500);
+        res.send(err.message);
+    }
+})
+
+
+export default { addTask, getTask, getTaskById, getUserTask, deleteTask, completeTask };
