@@ -35,6 +35,7 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setErr] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
@@ -168,14 +169,14 @@ const RegisterScreen = ({ navigation }) => {
                   placeholderTextColor={"#888"}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry={!showPassword}
+                  secureTextEntry={!showConfirmPassword}
                 />
                 <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   style={{}}
-                >
+                > 
                   <Icon
-                    name={showPassword ? "eye-slash" : "eye"}
+                    name={showConfirmPassword ? "eye-slash" : "eye"}
                     size={20}
                     color="#888"
                   />
@@ -252,6 +253,7 @@ const styles = StyleSheet.create({
   error: {
     color: "red",
     marginBottom: 12,
+    alignSelf: "center",
   },
   containerr: {
     marginVertical: 10,

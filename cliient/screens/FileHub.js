@@ -1,49 +1,228 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   SafeAreaView,
   ScrollView,
   Dimensions,
-  Button,
   StyleSheet,
   Image,
   TouchableOpacity,
   TextInput,
   Alert,
+  FlatList,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import * as DocumentPicker from "expo-document-picker";
+import { FOLDER_API_END_POINT } from "../utils/constant";
 
 const { width, height } = Dimensions.get("window");
 
 const FileHub = () => {
-  // State to manage folders
   const [folders, setFolders] = useState([]);
-  const [fName, setfName] = useState("");
+  const [folderName, setFolderName] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [token, setToken] = useState("");
 
-  // Function to add a new folder
-  const addFolder = () => {
-    if (fName.trim() === "") {
-      alert("Please enter a folder name");
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        if (storedToken) {
+          setToken(storedToken);
+          fetchFolders(storedToken); // Call fetchFolders after fetching the token
+        }
+      } catch (error) {
+        console.error("Failed to fetch token from AsyncStorage:", error);
+      }
+    };
+
+    fetchToken();
+  }, []);
+
+  const fetchFolders = async (token) => {
+    try {
+      const response = await fetch(`${FOLDER_API_END_POINT}/get`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        setFolders(responseData);
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to fetch folders.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
+
+  const createFolder = async () => {
+    if (!folderName) {
+      Alert.alert("Error", "Folder name is required.");
       return;
     }
 
-    const newFolder = {
-      id: folders.length + 1,
-      name: fName,
-    };
+    try {
+      const response = await fetch(`${FOLDER_API_END_POINT}/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: folderName }),
+      });
 
-    setFolders([...folders, newFolder]);
-    setfName("");
+      const responseData = await response.json();
+      if (response.ok) {
+        setFolders([...folders, responseData]);
+        setFolderName("");
+        Alert.alert("Success", "Folder created successfully.");
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to create folder.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
   };
 
-  const deleteFolder = (id) => {
-    setFolders(folders.filter((folder) => folder.id !== id));
+  const deleteFolder = async (folderId) => {
+    try {
+      const response = await fetch(`${FOLDER_API_END_POINT}/delete-folder/${folderId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        setFolders(folders.filter((folder) => folder.id !== folderId));
+        Alert.alert("Success", "Folder deleted successfully.");
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to delete folder.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
   };
 
-  const confirmDelete = (id) => {
+  const fetchFiles = async (folderId) => {
+    try {
+      const response = await fetch(`${FOLDER_API_END_POINT}/get-files/${folderId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let responseData;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+        try {
+          responseData = JSON.parse(responseData);
+        } catch (e) {
+          console.error("Failed to parse response as JSON:", responseData);
+        }
+      }
+
+      if (response.ok) {
+        setFiles(responseData);
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to fetch files.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
+
+  const uploadFile = async (folderId) => {
+    const result = await DocumentPicker.getDocumentAsync({});
+    if (result.type === "cancel") {
+      return;
+    }
+
+    const file = result.file;
+    const formData = new FormData();
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name,
+      type: file.mimeType,
+    });
+
+    try {
+      const response = await fetch(`${FOLDER_API_END_POINT}/upload-file/${folderId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        setFiles([...files, responseData]);
+        Alert.alert("Success", "File uploaded successfully.");
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to upload file.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
+
+  const deleteFile = async (folderId, fileId) => {
+    try {
+      const response = await fetch(`${FOLDER_API_END_POINT}/delete-file/${folderId}/${fileId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let responseData;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+        try {
+          responseData = JSON.parse(responseData);
+        } catch (e) {
+          console.error("Failed to parse response as JSON:", responseData);
+        }
+      }
+
+      if (response.ok) {
+        setFiles(files.filter((file) => file.id !== fileId));
+        Alert.alert("Success", "File deleted successfully.");
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to delete file.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
+
+  const confirmDeleteFolder = (id) => {
     Alert.alert(
       "Delete Folder",
-      "Are you sure you want to delete this folder? (once deleted you wont be able to recover this item)",
+      "Are you sure you want to delete this folder? (once deleted you won't be able to recover this item)",
       [
         {
           text: "Cancel",
@@ -59,125 +238,123 @@ const FileHub = () => {
     );
   };
 
+  const confirmDeleteFile = (folderId, fileId) => {
+    Alert.alert(
+      "Delete File",
+      "Are you sure you want to delete this file? (once deleted you won't be able to recover this item)",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => deleteFile(folderId, fileId),
+          style: "destructive",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Header Section */}
-        <View style={styles.headerContainer}>
-          <View style={styles.header}>
-            <Text style={{ fontSize: 24, color: "black", fontWeight: "300", textAlign: 'center',}}>
-              Welcome to your file-tastic pit stop!
-            </Text>
+      <FlatList
+        data={folders}
+        keyExtractor={(item) => item.id?.toString() || item.name}
+        ListHeaderComponent={
+          <View style={{ width: width * 0.3, padding: 10, height: height * 0.1, paddingBottom: 0 }}>
+            <Text style={{ fontSize: 30, fontWeight: "600" }}>FileHub</Text>
           </View>
-        </View>
-
-        {/* Main Content Section */}
-        <View style={styles.contentContainer}>
-          {folders.length === 0 ? (
-            <View style={{ justifyContent: "center", flex: 1 }}>
-              <View
+        }
+        ListEmptyComponent={
+          <View style={{ justifyContent: "center", alignItems: "center", flex: 1 }}>
+            <Image
+              source={require("../assets/fileimagee.jpg")}
+              style={{ height: height * 0.5, width: width * 0.9 }}
+            />
+            <View style={{ flexDirection: "row" }}>
+              <Image
+                source={require("../assets/exclamation.png")}
                 style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
+                  height: 15,
+                  width: 15,
+                  alignSelf: "center",
+                  marginRight: 5,
                 }}
-              >
-                <View style={{ position: "relative" }}>
-                  {/* Image */}
-                  <Image
-                    source={require("../assets/blackboard.png")}
-                    style={{
-                      height: height * 0.2,
-                      width: width * 0.5,
-                      alignSelf: "center",
-                    }}
-                  />
-
-                  {/* Text */}
-                  <Text style={styles.overlayText}>
-                    No {"\n"}Folders{"\n"}to {"\n"}show. {"\n"}
-                    Create A new Folder.
-                  </Text>
-                </View>
-
-                {/* Divider Line */}
-                <View
-                  style={{
-                    width: width * 0.7,
-                    height: 2,
-                    backgroundColor: "#000",
-                    alignSelf: "center",
-                  }}
-                />
-              </View>
-              <View style={{ marginBottom: 20 }}>
-                <Text style={{ fontSize: 24, fontWeight: "200" }}>
-                  Steps to create folder:{"\n"} i. Enter your folder
-                  name{"\n"}ii. Press create folder button.{"\n"}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row" }}>
-                <Image
-                  source={require("../assets/exclamation.png")}
-                  style={{
-                    height: 15,
-                    width: 15,
-                    alignSelf: "center",
-                    marginRight: 5,
-                  }}
-                />
-                <Text style={{ fontWeight: "500", fontStyle: "italic" }}>
-                  Long press on the folder to delete them.
-                </Text>
-              </View>
+              />
+              <Text style={{ fontWeight: "500", fontStyle: "italic" }}>
+                Long press on the folder to delete them.
+              </Text>
             </View>
-          ) : (
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                maxWidth: width,
-                ...styles.foldersContainer,
+          </View>
+        }
+        renderItem={({ item: folder }) => (
+          <View
+            key={folder.id || folder.name}
+            style={{
+              ...styles.boxShadow,
+              backgroundColor: "#f5f5f5",
+              borderRadius: 20,
+              padding: 10,
+              paddingLeft: 15,
+              paddingRight: 15,
+              marginBottom: 25,
+              flexWrap: "wrap",
+            }}
+          >
+            <TouchableOpacity
+              style={{}}
+              onLongPress={() => confirmDeleteFolder(folder.id)}
+              onPress={() => {
+                setSelectedFolder(folder.id);
+                fetchFiles(folder.id);
               }}
             >
-              {folders.map((folder) => (
-                <View
-                  key={folder.id}
-                  style={{
-                    ...styles.boxShadow,
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: 20,
-                    padding: 10,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    marginBottom: 25,
-                    flexWrap: 'wrap'
-                  }}
+              <Image
+                source={require("../assets/folder1.png")}
+                style={{ height: 150, width: 150 }}
+              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                {folder.name}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+
+      {selectedFolder && (
+        <View style={styles.filesContainer}>
+          <Text style={styles.filesHeader}>Files in {folders.find(f => f.id === selectedFolder)?.name}</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => uploadFile(selectedFolder)}
+          >
+            <Text style={styles.buttonText}>Upload File</Text>
+          </TouchableOpacity>
+          <FlatList
+            data={files}
+            keyExtractor={(item) => item.id?.toString() || item.name}
+            renderItem={({ item }) => (
+              <View style={styles.fileContainer} key={item.id || item.name}>
+                <Text style={styles.fileText}>{item.name}</Text>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => confirmDeleteFile(selectedFolder, item.id)}
                 >
-                  <TouchableOpacity
-                    style={{}}
-                    onLongPress={() => confirmDelete(folder.id)}
-                  >
-                    <Image
-                      source={require("../assets/folder1.png")}
-                      style={{ height: 150, width: 150 }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        textAlign: "center",
-                      }}
-                    >
-                      {folder.name}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
         </View>
-      </ScrollView>
+      )}
 
       <View
         style={{
@@ -198,8 +375,8 @@ const FileHub = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter Folder Name"
-            value={fName}
-            onChangeText={setfName}
+            value={folderName}
+            onChangeText={setFolderName}
           />
         </View>
 
@@ -212,7 +389,7 @@ const FileHub = () => {
             marginBottom: 10,
           }}
         >
-          <TouchableOpacity onPress={addFolder}>
+          <TouchableOpacity onPress={createFolder}>
             <Image
               source={require("../assets/folder.png")}
               style={{ height: 50, width: 50 }}
@@ -228,14 +405,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    padding: 10,
   },
   headerContainer: {
     width: width * 0.9,
     height: height * 0.075,
     backgroundColor: "#F2E3A1",
     borderRadius: 20,
-    alignSelf: 'center',
-    top: 2
+    alignSelf: "center",
+    top: 2,
   },
   header: {
     height: "100%",
@@ -244,33 +422,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     backgroundColor: "white",
-    padding: 20,
-  },
-  bannerContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-    padding: 20,
-    marginTop: 50,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "black",
-  },
-  overlayText: {
-    position: "absolute",
-    top: "30%", // Position text vertically in the center
-    left: "35%", // Position text horizontally in the center
-    transform: [{ translateX: -width * 0.25 }, { translateY: -height * 0.04 }], // Adjust to exactly center
-    fontSize: 16,
-    color: "black",
-    fontWeight: "300",
-    textAlign: "left",
-  },
-  bannerText: {
-    fontSize: 16,
-    color: "black",
-    textAlign: "center",
-    fontWeight: "bold",
   },
   foldersContainer: {
     marginTop: 20,
@@ -305,6 +456,49 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 1,
     elevation: 5,
+  },
+  button: {
+    backgroundColor: "blue",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
+  },
+  fileContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "gray",
+  },
+  fileText: {
+    fontSize: 16,
+    color: 'black'
+  },
+  deleteButton: {
+    backgroundColor: "red",
+    padding: 5,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: "white",
+    fontSize: 14,
+  },
+  filesContainer: {
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  filesHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
   },
 });
 

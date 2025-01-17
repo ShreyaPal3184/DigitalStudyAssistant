@@ -20,6 +20,8 @@ const { width, height } = Dimensions.get("window");
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("")
+  const [userid, setUserID] = useState("")
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -35,6 +37,39 @@ const ProfileScreen = () => {
 
     fetchUsername();
   }, []);
+
+  useEffect(()=>{
+    const fetchUseremail = async ()=> {
+      try {
+        const storedEmail = await AsyncStorage.getItem("userEmail");
+        if(storedEmail){
+          setEmail(storedEmail);
+        }
+      } catch (error) {
+        console.error("Failed to fetch email from AsyncStorage:", error);
+      }
+    };
+
+    fetchUseremail();
+
+  }, []);
+
+  useEffect(()=>{
+    const fetchUserID = async ()=> {
+      try {
+        const storedID = await AsyncStorage.getItem("userID");
+        if(storedID){
+          setUserID(storedID);
+        }
+      } catch (error) {
+        console.error("Failed to fetch email from AsyncStorage:", error);
+      }
+    };
+
+    fetchUserID();
+
+  }, []);
+
 
   const handleBack = () => {
     navigation.navigate("Home");
@@ -137,13 +172,13 @@ const ProfileScreen = () => {
               <Text style={{ color: "grey", paddingBottom: 5, fontSize: 12 }}>
                 USER ID
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: "900" }}>#USERKAID</Text>
+              <Text style={{ fontSize: 20, fontWeight: "400" }}>#SMdsa{userid}</Text>
             </View>
             <View style={{ padding: 15 }}>
               <Text style={{ color: "grey", paddingBottom: 5, fontSize: 12 }}>
                 USERNAME
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: "900" }}>
+              <Text style={{ fontSize: 20, fontWeight: "400" }}>
                 {username}
               </Text>
             </View>
@@ -151,8 +186,8 @@ const ProfileScreen = () => {
               <Text style={{ color: "grey", paddingBottom: 5, fontSize: 12 }}>
                 EMAIL
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: "900" }}>
-                USER KA EMAIL
+              <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                {email}
               </Text>
             </View>
           </View>
@@ -321,9 +356,7 @@ const ProfileScreen = () => {
       {/* Logout */}
       <View style={{ padding: 15, justifyContent: "flex-end" }}>
         <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("Login");
-          }}
+          onPress={handleLogout}
           style={{
             flexDirection: "row",
             padding: 1,

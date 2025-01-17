@@ -30,7 +30,6 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -52,10 +51,12 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
       console.log("Response data:", response.data);
 
       if (response.data.success) {
-        Alert.alert("Login Successful", response.data.message);
+        console.log("Login Successful", response.data.message);
 
         const token = response.data.token;
         const username = response.data.username;
+        const userEmail = response.data.userEmail;
+        const userid = response.data.userId;
 
         if (token) {
           console.log("Received token:", token);
@@ -72,7 +73,20 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
         }
 
         await AsyncStorage.setItem("userToken", token);
-        await AsyncStorage.setItem("userName", username);
+
+        if (userEmail) {
+          console.log("Received email:", userEmail);
+          await AsyncStorage.setItem("userEmail", userEmail);
+        } else {
+          Alert.alert("Error", "User email is missing in the response.");
+        }
+
+        if (userid) {
+          console.log("Received userid:", userid);
+          await AsyncStorage.setItem("userID", JSON.stringify(userid));
+        } else {
+          Alert.alert("Error", "User id is missing in the response.");
+        }
 
         setIsLoggedIn(true);
         navigation.replace("Tabs");
@@ -80,6 +94,7 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
         Alert.alert("Login Failed", response.data.message);
       }
     } catch (error) {
+      console.error("Login error:", error);
       Alert.alert("Error", "An error occurred during login");
     } finally {
       setLoading(false);
@@ -144,12 +159,6 @@ const LoginScreen = ({ navigation, setIsLoggedIn }) => {
                   />
                 </TouchableOpacity>
               </View>
-              {/* <CustomInput
-                placeholder="Password"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              /> */}
               <CustomButton
                 title={loading ? "Logging in..." : "Login"}
                 onPress={handleLogin}
@@ -201,26 +210,26 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   containerr: {
-      marginVertical: 10,
-      width: "90%",
-      alignSelf: "center",
-      borderRadius: 25,
-      backgroundColor: colors.inputBackground,
-      borderColor: "#ccc",
-      borderWidth: 1,
-      flexDirection: "row",
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 10,
-      paddingLeft: 0,
-    },
-    input: {
-      backgroundColor: colors.inputBackground,
-      width: "80%",
-      padding: 10,
-      fontSize: 16,
-      borderRadius: 25,
-    },
+    marginVertical: 10,
+    width: "90%",
+    alignSelf: "center",
+    borderRadius: 25,
+    backgroundColor: colors.inputBackground,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingLeft: 0,
+  },
+  input: {
+    backgroundColor: colors.inputBackground,
+    width: "80%",
+    padding: 10,
+    fontSize: 16,
+    borderRadius: 25,
+  },
 });
 
 export default LoginScreen;

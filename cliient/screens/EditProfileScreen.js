@@ -41,7 +41,7 @@ const EditProfileScreen = ({ navigation }) => {
   }, []);
 
   const handleSave = async () => {
-    if (!name || !email || !password) {
+    if (!name || !email) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }

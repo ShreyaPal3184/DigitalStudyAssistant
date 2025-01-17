@@ -8,6 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
+  Image,
 } from "react-native";
 import { TASK_API_END_POINT } from "../utils/constant";
 import { Picker } from "@react-native-picker/picker";
@@ -174,9 +175,14 @@ const TaskScreen = () => {
         }}
       >
         <View style={styles.container}>
-          <View style={{ paddingBottom: 30 }}>
-            <Text style={{ fontSize: 50, fontWeight: "bold" }}>New Task</Text>
+          <View style={{}}>
+            <Text style={{ fontSize: 50, fontWeight: "300" }}>New Task</Text>
           </View>
+
+          <Image
+            source={require("../assets/taskimagee.jpg")}
+            style={{ height: height * 0.4, width: width * 0.9 }}
+          />
 
           {/* Task Title */}
           <View>
@@ -197,10 +203,11 @@ const TaskScreen = () => {
                   marginBottom: 20,
                   height: 50,
                   borderWidth: 1,
-                  borderColor: "#b3d9ff",
+                  borderColor: "#FAD5A5",
                   borderTopWidth: 0,
                   fontSize: 20,
-                  fontWeight: "900",
+                  fontWeight: "400",
+                  ...styles.boxShadow,
                 }}
                 placeholder="Add task title..."
                 placeholderTextColor="#aaa"
@@ -217,7 +224,7 @@ const TaskScreen = () => {
                 DESCRIPTION{" "}
               </Text>
             </View>
-            <View style={styles.addTaskDesc}>
+            <View style={{ ...styles.addTaskDesc }}>
               <TextInput
                 style={styles.input}
                 placeholder="Add task Description..."
@@ -259,9 +266,7 @@ const TaskScreen = () => {
             </View>
             <View
               style={{
-                borderWidth: 1,
-                borderTopWidth: 0,
-                borderColor: "black",
+                ...styles.boxShadow,
                 ...styles.addTaskDueDate,
               }}
             >
@@ -286,7 +291,7 @@ const TaskScreen = () => {
             style={{
               marginTop: 10,
               marginBottom: 40,
-              backgroundColor: "pink",
+              backgroundColor: "white",
               height: height * 0.06,
               borderRadius: 100,
               width: "80%",
@@ -316,9 +321,15 @@ const TaskScreen = () => {
             </TouchableOpacity>
           </View>
 
+          <View style={{ marginBottom: 20 }} />
+
           {/* User Tasks */}
           <Text style={styles.taskLabel}>Your Tasks:</Text>
-          <ScrollView style={styles.userTasks} contentContainerStyle={{ flexGrow: 1 }}>
+          <ScrollView
+            style={styles.userTasks}
+            contentContainerStyle={{ flexGrow: 1 }}
+            nestedScrollEnabled={true}
+          >
             <View>
               {tasks.length === 0 ? (
                 <Text style={{ fontSize: 18, color: "grey" }}>
@@ -327,9 +338,7 @@ const TaskScreen = () => {
               ) : (
                 tasks.map((task, index) => (
                   <View key={index} style={styles.taskItem}>
-                    <Text style={styles.taskTitle}>
-                      Title: {task.title}
-                    </Text>
+                    <Text style={styles.taskTitle}>Title: {task.title}</Text>
                     <Text style={styles.taskDescription}>
                       Description: {task.description}
                     </Text>
@@ -370,9 +379,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     height: 50,
     fontSize: 20,
-    fontWeight: "900",
-    borderWidth: 1,
-    borderColor: "#b3d9ff",
+    fontWeight: "400",
   },
   addTaskDesc: {
     flex: 1,
@@ -380,14 +387,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     marginBottom: 20,
-    height: height * 0.2,
     borderWidth: 1,
-    borderColor: "#b3d9ff",
+    borderTopWidth: 0,
+    borderColor: "#FAD5A5",
   },
   addTaskPriority: {
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#b3d9ff",
+    borderColor: "#FAD5A5",
     borderRadius: 10,
     backgroundColor: "#ffffff",
   },
@@ -400,16 +407,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#b3d9ff",
+
+    borderColor: "#FAD5A5",
   },
   userTasks: {
-    flex: 1,
     backgroundColor: "#ffffff",
     padding: 15,
     borderRadius: 10,
     marginBottom: 200,
     borderWidth: 1,
     borderColor: "#b3d9ff",
+    height: height * 0.4,
   },
   taskLabel: {
     fontSize: 18,
@@ -441,6 +449,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "red",
     marginTop: 10,
+  },
+  boxShadow: {
+    shadowColor: "black",
+    shadowOffset: {
+      width: 6,
+      height: 6,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 10,
   },
 });
 

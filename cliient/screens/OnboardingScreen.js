@@ -19,14 +19,14 @@ const OnboardingScreen = () => {
   const navigation = useNavigation();
 
   const handleDone = () => {
-    navigation.navigate('Login')
+    navigation.navigate('Register')
     setItem('onboarded', '1');
   }
 
   const doneButton = ({...props}) => {
     return (
       <TouchableOpacity style={{padding: 20,margin: 2 , marginRight: 10, }} {...props}>
-      <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 15, color: 'black'}}>Done</Text>
+      <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize: 15, color: 'black'}}>I'm Ready</Text>
     </TouchableOpacity>
     )
   }
@@ -53,6 +53,7 @@ const OnboardingScreen = () => {
     >
       <View style={{  }}>
         <Onboarding
+          swipeEnabled={false}
           onDone={handleDone}
           onSkip={handleDone}
           bottomBarHighlight = {false}
@@ -124,26 +125,26 @@ const OnboardingScreen = () => {
               subtitle: "Break down your study goals into manageable tasks for consistent progress.",
               
             },
+            // {
+            //   backgroundColor: "#3E5879",
+            //   image: (
+            //     <View>
+            //       <LottieView
+            //         style={styles.lottie}
+            //         source={require("../assets/animations/friends.json")}
+            //         autoPlay
+            //         loop
+            //         onError={(error) =>
+            //           console.log("Error loading animation:", error)
+            //         }
+            //       />
+            //     </View>
+            //   ),
+            //   title: "On the go File Hub",
+            //   subtitle: "A single land for all your files.",
+            // },
             {
-              backgroundColor: "#3E5879",
-              image: (
-                <View>
-                  <LottieView
-                    style={styles.lottie}
-                    source={require("../assets/animations/friends.json")}
-                    autoPlay
-                    loop
-                    onError={(error) =>
-                      console.log("Error loading animation:", error)
-                    }
-                  />
-                </View>
-              ),
-              title: "On the go File Hub",
-              subtitle: "A single land for all your files.",
-            },
-            {
-              backgroundColor: "#213555",
+              backgroundColor: "lightyellow",
               image: (
                 <View>
                   <LottieView
@@ -157,30 +158,30 @@ const OnboardingScreen = () => {
                   />
                 </View>
               ),
-              title: "Join the Study Community",
-              subtitle: "Connect with friends, share resources, and grow together in your academic journey.",
+              title: "Join the StudyMaster Community",
+              subtitle: "Discover a whole new way to study with friends and peers.",
             },
-            {
-              backgroundColor: "white",
-              image: (
-                <View>
-                  <LottieView
-                    style={styles.lottie}
-                    source={require("../assets/animations/loginRegister.json")}
-                    autoPlay={false}
-                    loop={true}
-                    ref={(animation) => {
-                      if (animation) animation.play();
-                    }}
-                    onError={(error) =>
-                      console.log("Error loading animation:", error)
-                    }
-                  />
-                </View>
-              ),
-              title: "Lets get you started",
-              subtitle: "",
-            },
+            // {
+            //   backgroundColor: "white",
+            //   image: (
+            //     <View>
+            //       <LottieView
+            //         style={styles.lottie}
+            //         source={require("../assets/animations/loginRegister.json")}
+            //         autoPlay={false}
+            //         loop={true}
+            //         ref={(animation) => {
+            //           if (animation) animation.play();
+            //         }}
+            //         onError={(error) =>
+            //           console.log("Error loading animation:", error)
+            //         }
+            //       />
+            //     </View>
+            //   ),
+            //   title: "Lets get you started",
+            //   subtitle: "",
+            // },
           ]}
         />
       </View>

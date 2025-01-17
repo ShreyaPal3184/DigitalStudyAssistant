@@ -13,8 +13,9 @@ import {
   Button,
   Alert,
   RefreshControl,
+  ImageBackground, // Add ImageBackground import
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TASK_API_END_POINT, SESSION_API_END_POINT } from "../utils/constant";
 
@@ -112,9 +113,15 @@ const HomeScreen = () => {
   useEffect(() => {
     if (token) {
       fetchTasks();
-      // fetchUpcomingSession();
+      fetchUpcomingSession();
     }
   }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUpcomingSession();
+    }, [])
+  );
 
   const fetchTasks = async () => {
     try {
@@ -127,7 +134,7 @@ const HomeScreen = () => {
       });
 
       if (response.status === 401) {
-        Alert.alert("Unauthorized", "Please log in again.");
+        console.log("Unauthorized", "Please log in again.");
         return;
       }
 
@@ -163,7 +170,7 @@ const HomeScreen = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -171,82 +178,81 @@ const HomeScreen = () => {
       if (response.ok) {
         setSessions(responseData);
       } else {
-        Alert.alert("Error", responseData.message || "Failed to fetch sessions.");
+        Alert.alert(
+          "Error",
+          responseData.message || "Failed to fetch sessions."
+        );
       }
     } catch (error) {
       Alert.alert("Error", error.message || "An error occurred.");
     }
   };
 
-  // const fetchUpcomingSession = async () => {
-  //   try {
-  //     const response = await fetch(`${SESSION_API_END_POINT}/upcoming`, {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
+  const fetchUpcomingSession = async () => {
+    try {
+      const storedSession = await AsyncStorage.getItem("upcomingSession");
+      if (storedSession) {
+        setUpcomingSession(JSON.parse(storedSession));
+      }
+    } catch (error) {
+      console.error(
+        "Failed to fetch upcoming session from AsyncStorage:",
+        error
+      );
+    }
+  };
 
-  //     if (response.status === 401) {
-  //       Alert.alert("Unauthorized", "Please log in again.");
-  //       return;
-  //     }
+  const removeUpcomingSession = async () => {
+    try {
+      await AsyncStorage.removeItem("upcomingSession");
+      setUpcomingSession(null);
+      Alert.alert("Success", "Session removed successfully.");
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
 
-  //     const contentType = response.headers.get("content-type");
-  //     let responseData;
-  //     if (contentType && contentType.includes("application/json")) {
-  //       responseData = await response.json();
-  //     } else {
-  //       responseData = await response.text();
-  //       console.error("Unexpected response format:", responseData);
-  //       return;
-  //     }
+  const completeTask = async (taskId) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await fetch(`${TASK_API_END_POINT}/complete/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  //     if (response.ok) {
-  //       setUpcomingSession(responseData);
-  //     } else {
-  //       Alert.alert("Error", responseData.message || "Failed to fetch upcoming session.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching upcoming session:", error);
-  //     Alert.alert("Error", error.message || "An error occurred.");
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const fetchStoredUpcomingSession = async () => {
-  //     try {
-  //       const storedSession = await AsyncStorage.getItem("upcomingSession");
-  //       if (storedSession) {
-  //         setUpcomingSession(JSON.parse(storedSession));
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch upcoming session from AsyncStorage:", error);
-  //     }
-  //   };
-
-  //   fetchStoredUpcomingSession();
-  // }, []);
+      if (response.ok) {
+        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+        Alert.alert("Success", "Task completed successfully.");
+        // No need to call fetchTasks() here as we are already updating the state
+      } else {
+        const responseData = await response.json();
+        Alert.alert("Error", responseData.message || "Failed to complete task.");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "An error occurred.");
+    }
+  };
 
   const colors = [
     "#F2E3A1", // Original
-  "#F7E8B0", // Lighter shade
-  "#ECE09A", // Slightly darker
-  "#FFF2C3", // Pale yellow
-  "#E8D891", // Muted gold
-  "#D9C77A", // Deeper tone
-  "#FAEDB5", // Soft pastel
-  "#F1E09F", // Slightly warmer
-  "#EFE6B0", // Neutral beige
-  "#E6D99C"  // Subtle brownish tint
-
+    "#F7E8B0", // Lighter shade
+    "#ECE09A", // Slightly darker
+    "#FFF2C3", // Pale yellow
+    "#E8D891", // Muted gold
+    "#D9C77A", // Deeper tone
+    "#FAEDB5", // Soft pastel
+    "#F1E09F", // Slightly warmer
+    "#EFE6B0", // Neutral beige
+    "#E6D99C", // Subtle brownish tint
   ];
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchTasks();
-    // fetchUpcomingSession();
+    fetchUpcomingSession();
     setRefreshing(false);
   }, []);
 
@@ -259,145 +265,164 @@ const HomeScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <TouchableOpacity onPress={() => console.log("hamburger menu")}>
-            <Image
-              source={require("../assets/hamburger.png")}
-              style={{ height: 25, width: 25 }}
-            />
-          </TouchableOpacity>
+        <View style={{ paddingBottom: 20 }}>
           <View
             style={{
               flexDirection: "row",
-              width: width * 0.25,
               justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            {/* Bell Icon */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate("NotificationScreen")}
-              style={{
-                backgroundColor: "white",
-                borderRadius: 100,
-                height: width * 0.09,
-                width: width * 0.09,
-                justifyContent: "center",
-                alignItems: "center",
-                ...styles.shadow,
-              }}
-            >
-              <Image
-                source={require("../assets/bell.png")} // Replace with the path to your bell icon
-                style={{ height: 25, width: 25 }}
-              />
-            </TouchableOpacity>
-
-            {/* Profile Icon */}
-            <TouchableOpacity
-              onPress={handleProfile}
-              style={{
-                backgroundColor: "white",
-                borderRadius: 100,
-                height: width * 0.09,
-                width: width * 0.14,
-                justifyContent: "center",
-                alignItems: "center",
-                ...styles.shadow,
-              }}
-            >
-              <Image
-                source={require("../assets/user.png")}
-                style={{ height: 25, width: 25 }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* user */}
-        <View style={{ paddingTop: 20 }}>
-          <Text style={{ fontSize: 50, fontWeight: "400" }}>Hello,</Text>
-          <Text
-            style={{ fontSize: 50, fontWeight: "bold", ...styles.textShadow }}
-          >
-            {username} 👋
-          </Text>
-        </View>
-
-        <View style={{ paddingTop: 20 }}>
-          <Text style={{ fontSize: 30, fontWeight: "300" }}>
-            What are you going to do today?
-          </Text>
-          <View
-            style={{ flexDirection: "row", padding: 5, alignItems: "center" }}
-          >
-            <View style={styles.LeftSideDates}>
-              <Text
-                style={{ textAlign: "center", fontSize: 24, fontWeight: "100" }}
-              >
-                {prevDay}{" "}
-              </Text>
-            </View>
+            <Text style={{ fontSize: 20 }}>
+              Study
+              <Text style={{ color: "black", fontWeight: "900" }}>Master</Text>
+            </Text>
             <View
               style={{
-                height: height * 0.07,
-                backgroundColor: "#F2E3A1",
-                width: width * 0.14,
-                justifyContent: "center",
-                borderRadius: 10,
-                borderWidth: 1,
-                borderColor: "grey",
-                ...styles.shadow,
+                flexDirection: "row",
+                width: width * 0.25,
+                justifyContent: "space-between",
               }}
             >
-              <Text
-                style={{ textAlign: "center", fontSize: 32, fontWeight: "200" }}
+              {/* Bell Icon */}
+              <TouchableOpacity
+                onPress={() => navigation.navigate("NotificationScreen")}
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 100,
+                  height: width * 0.09,
+                  width: width * 0.09,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  ...styles.shadow,
+                }}
               >
-                {day}
-              </Text>
-            </View>
-            <View style={styles.RightSideDates}>
-              <Text
-                style={{ textAlign: "center", fontSize: 24, fontWeight: "100" }}
+                <Image
+                  source={require("../assets/bell.png")} // Replace with the path to your bell icon
+                  style={{ height: 25, width: 25 }}
+                />
+              </TouchableOpacity>
+
+              {/* Profile Icon */}
+              <TouchableOpacity
+                onPress={handleProfile}
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 100,
+                  height: width * 0.09,
+                  width: width * 0.14,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  ...styles.shadow,
+                }}
               >
-                {nextDay}
-              </Text>
+                <Image
+                  source={require("../assets/user.png")}
+                  style={{ height: 25, width: 25 }}
+                />
+              </TouchableOpacity>
             </View>
           </View>
-          <Text style={{ padding: 5, fontSize: 18, color: "grey" }}>
-            {monthName}, {weekDayName}, {year}
-          </Text>
+
+          {/* user */}
+          <View style={{ paddingTop: 20 }}>
+            <Text style={{ fontSize: 50, fontWeight: "400" }}>Hello,</Text>
+            <Text
+              style={{ fontSize: 40, fontWeight: "bold", ...styles.textShadow, marginBottom: 10 }}
+            >
+              {username} 👋
+            </Text>
+            <Text style={{ fontSize: 30, fontWeight: "300" }}>
+              What are you going to do today?
+            </Text>
+            <View
+              style={{ flexDirection: "row", padding: 5, alignItems: "center" }}
+            >
+              <View style={styles.LeftSideDates}>
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontSize: 24,
+                    fontWeight: "100",
+                  }}
+                >
+                  {prevDay}{" "}
+                </Text>
+              </View>
+              <View
+                style={{
+                  height: height * 0.07,
+                  backgroundColor: "#F2E3A1",
+                  width: width * 0.14,
+                  justifyContent: "center",
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "grey",
+                  ...styles.shadow,
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontSize: 32,
+                    fontWeight: "200",
+                  }}
+                >
+                  {day}
+                </Text>
+              </View>
+              <View style={styles.RightSideDates}>
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontSize: 24,
+                    fontWeight: "100",
+                  }}
+                >
+                  {nextDay}
+                </Text>
+              </View>
+            </View>
+            <Text style={{ padding: 5, fontSize: 18, color: "grey" }}>
+              {monthName}, {weekDayName}, {year}
+            </Text>
+          </View>
         </View>
 
-        {/* my tasks */}
-        <View style={{ paddingTop: 20 }}>
-          <Text style={{ fontSize: 35, fontWeight: "bold" }}>my tasks: </Text>
-          <View style={{ paddingTop: 20, backgroundColor: "white", borderRadius: 20 }}>
+        {/*  my tasks */}
+        <View style={{ paddingTop: 0 }}>
+          <Text style={{ fontSize: 30, fontWeight: "500" }}>
+            your tasks<Text style={{ fontSize: 40 }}>,</Text>{" "}
+          </Text>
+          <View
+            style={{
+              paddingTop: 20,
+              backgroundColor: "white",
+              borderRadius: 20,
+            }}
+          >
             {tasks.length === 0 ? (
               <Text style={{ fontSize: 18, color: "grey" }}>
                 No tasks found.
               </Text>
             ) : (
               <ScrollView
-                style={{ borderRadius: 10, height: height * 0.45, }}
+                style={{ borderRadius: 10, height: height * 0.27 }}
                 contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}
                 nestedScrollEnabled={true}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
+                horizontal={true}
               >
                 {tasks.map((task, index) => (
                   <View
                     key={index}
                     style={{
+                      marginRight: 10,
                       marginBottom: 50,
-                      height: height * 0.17,
+                      height: height * 0.22,
                       width: width * 0.9,
-                      backgroundColor: (task.priority === "High" ? 'red' :(task.priority === "Medium" ? 'orange' : 'green')),
+                      backgroundColor: "white",
                       borderBottomRightRadius: 0,
                       shadowColor: colors[index % colors.length],
                       shadowOffset: {
@@ -410,96 +435,96 @@ const HomeScreen = () => {
                       borderRadius: 20,
                     }}
                   >
-                    <View
+                    <Image
+                      source={require("../assets/tasksbg.jpg")}
                       style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignSelf: "flex-end",
-                        width: width * 0.86,
-                        height: height * 0.14,
-                        padding: 20,
-                        borderWidth: 1,
-                        borderTopColor: 'grey',
+                        height: "100%",
+                        width: "100%",
                         borderRadius: 20,
-                        borderBottomRightRadius: 0,
-                        backgroundColor: "white",
+                        position: "absolute",
                       }}
-                    >
-                      <View
+                    />
+                    <View style={{ padding: 20 }}>
+                      <Text
                         style={{
-                          backgroundColor: "white",
-                          borderRadius: 35,
-                          padding: 1,
-                          alignItems: "center",
-                          justifyContent: "center",
+                          fontSize: 30,
+                          fontWeight: "bold",
+                          color: "white",
+                          marginBottom: 10,
                         }}
                       >
-                        <Image
-                          source={require("../assets/checklist.png")}
-                          style={{ height: 75, width: 75 }}
-                        />
+                        {task.title}, <Text style={{color: 'white', fontSize: 15, fontWeight: '400'}}>{task.description}</Text>
+                      </Text>
+
+                      <View
+                        style={{
+                          borderRadius: 25,
+                          borderWidth: 2,
+                          borderColor: "lightblue",
+                          padding: 7,
+                          marginVertical: 5,
+                          width: task.due_date.length * 9,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            color: "white",
+                            textAlign: "center",
+                          }}
+                        >
+                          Due Date: {new Date(task.due_date).toDateString()}
+                        </Text>
                       </View>
-                      <View style={{ flexDirection: "column", width: "67%" }}>
-                        <View
+                      <View
+                        style={{
+                          borderRadius: 25,
+                          borderWidth: 2,
+                          borderColor:
+                            task.priority === "High"
+                              ? "red"
+                              : task.priority === "Medium"
+                              ? "orange"
+                              : "yellow",
+                          padding: 5,
+                          marginVertical: 5,
+                          width: task.priority.length * 20,
+                        }}
+                      >
+                        <Text
                           style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginBottom: 5,
+                            fontSize: 18,
+                            fontWeight: "900",
+                            color: "white",
+                            textAlign: "center",
+                            color:
+                              task.priority === "High"
+                                ? "red"
+                                : task.priority === "Medium"
+                                ? "orange"
+                                : "yellow",
                           }}
                         >
-                          <Text style={{ fontSize: 24, fontWeight: "bold" }}>
-                            {task.title}
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginBottom: 5,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 16,
-                              color: "grey",
-                              paddingRight: 5,
-                            }}
-                          >
-                            due date:{" "}
-                          </Text>
-                          <Text style={{ fontSize: 20, fontWeight: "400" }}>
-                            {new Date(task.due_date).toDateString()}
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 16,
-                              color: "grey",
-                              paddingRight: 5,
-                            }}
-                          >
-                            priority:{" "}
-                          </Text>
-                          <Text style={{ fontSize: 20, fontWeight: "400" }}>
-                            {task.priority}
-                          </Text>
-                        </View>
+                          {task.priority}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          padding: 1,
+                          alignItems: "center",
+                          alignSelf: "flex-end",
+                        }}
+                      >
+                        <TouchableOpacity>
+                          <Image
+                            source={require("../assets/delete1.png")}
+                            style={{ height: 30, width: 30 }}
+                          />
+                        </TouchableOpacity>
                       </View>
                     </View>
-                    <View style={{flexDirection: 'row', alignSelf: 'flex-end'}}>
-                    <TouchableOpacity onPress={() => deleteTask(task.id)} style={{ backgroundColor: "white", borderRadius: 10, padding: 10, width: width*0.32, alignSelf: "flex-end", borderColor: colors[index % colors.length], borderBottomRightRadius: 0, borderTopRightRadius:0, borderWidth:1,borderColor: 'black' }}>
-                      <Text style={{textAlign:'center', fontSize: 20}}>Task Complete</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => deleteTask(task.id)} style={{ backgroundColor: "white", padding: 10, alignSelf: "flex-end", borderColor: colors[index % colors.length], borderBottomRightRadius: 0, borderTopRightRadius:0, borderWidth:1,borderColor: 'black' }}>
-                      <Image source={require("../assets/delete.png")} style={{height: 24, width: 25}}/>
-                    </TouchableOpacity>
-                    </View>
+                    
                   </View>
                 ))}
               </ScrollView>
@@ -508,29 +533,122 @@ const HomeScreen = () => {
         </View>
 
         {/* upcoming session */}
-        {/* <View>
-          <Text style={{ fontSize: 35, fontWeight: "bold", paddingTop: 20 }}>
-            upcoming session:
+        <View>
+          <Text style={{ fontSize: 35, fontWeight: "500", paddingTop: 0 }}>
+            your session<Text style={{ fontSize: 40 }}>,</Text>
           </Text>
           {upcomingSession ? (
-            <View style={{ marginTop: 10, paddingTop: 20, borderWidth: 1, borderColor: "grey", borderRadius: 20, backgroundColor: "white", padding: 20, width: width * 0.9, height: height * 0.25 }}>
-              <Text style={{ fontSize: 24, fontWeight: "bold" }}>{upcomingSession.subject}</Text>
-              <Text style={{ fontSize: 18, color: "grey" }}>Start Time: {new Date(upcomingSession.start_time).toLocaleTimeString()}</Text>
-              <Text style={{ fontSize: 18, color: "grey" }}>End Time: {new Date(upcomingSession.end_time).toLocaleTimeString()}</Text>
-              <Text style={{ fontSize: 18, color: "grey" }}>Status: {upcomingSession.status}</Text>
-            </View>
+            <ImageBackground
+              source={require("../assets/white1.png")}
+              style={styles.upcomingSessionImage}
+              imageStyle={{ borderRadius: 20 }}
+            >
+              <View style={styles.upcomingSessionDetails}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 1,
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 44, fontWeight: "bold", color: "black" }}
+                  >
+                    {upcomingSession.subject}
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    color: "black",
+                    borderWidth: 1,
+                    borderColor: "purple",
+                    padding: 4,
+                    borderRadius: 20,
+                    width: upcomingSession.start_time.length * 8,
+                    textAlign: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  Date: {new Date(upcomingSession.start_time).toDateString()}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    color: "black",
+                    borderWidth: 1,
+                    borderColor: "blue",
+                    padding: 4,
+                    borderRadius: 20,
+                    width: upcomingSession.start_time.length * 8,
+                    textAlign: "center",
+                  }}
+                >
+                  Start Time:{" "}
+                  {new Date(upcomingSession.start_time).toLocaleTimeString()}
+                </Text>
+                <View style={{alignSelf: 'flex-end', marginTop: "10%"}}>
+                  <TouchableOpacity
+                    style={{alignSelf:'flex-end' ,...styles.removeButton}}
+                    onPress={removeUpcomingSession}
+                  >
+                    <Text style={styles.removeButtonText}>Remove Session</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ImageBackground>
           ) : (
-            <Text style={{ fontSize: 18, color: "grey" }}>No upcoming sessions found.</Text>
+            <View
+              style={{
+                padding: 20,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, color: "grey", fontStyle: "italic" }}
+              >
+                No upcoming sessions found. Please go to Your Sessions screen
+                and start a session or create a new one.
+              </Text>
+            </View>
           )}
-        </View> */}
-
-        <View style={{backgroundColor:'white', justifyContent: 'center', alignItems: 'center', padding: 20, borderRadius: 20, marginTop: 20}}>
-          <TouchableOpacity onPress={()=>navigation.navigate('StartstudyingScreen')} style={{  borderRadius: 10, padding: 20, width: "80%", alignSelf: "center", marginTop: 20, borderWidth: 1, borderColor: 'black' }}>
-            <Text style={{fontSize: 24, textAlign: 'center'}}>Start Studying</Text>
-          </TouchableOpacity>
         </View>
 
-   
+        <View
+          style={{
+            backgroundColor: "white",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+            borderRadius: 20,
+            marginTop: 20,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => {
+              if (upcomingSession) {
+                navigation.navigate("StartstudyingScreen");
+              }
+            }}
+            style={{
+              borderRadius: 10,
+              padding: 10,
+              width: "80%",
+              alignSelf: "center",
+              marginTop: 20,
+              borderWidth: 1,
+              borderColor: "black",
+              backgroundColor: upcomingSession ? "black" : "grey",
+              ...styles.shadow,
+            }}
+            disabled={!upcomingSession}
+          >
+            <Text style={{ fontSize: 24, textAlign: "center", color: "white" }}>
+              Start Studying
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -563,13 +681,11 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   textShadow: {
-    textShadowColor: "rgba(0, 0, 0, 0.5)", // Shadow color
     textShadowOffset: { width: 2, height: 2 }, // Shadow offset
     textShadowRadius: 3, // Blur radius
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -611,6 +727,31 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "grey",
     borderRadius: 10,
+  },
+  upcomingSessionImage: {
+    height: 250,
+    marginTop: 20,
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  upcomingSessionDetails: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 20,
+  },
+  removeButton: {
+    marginTop: 10,
+    padding: 5,
+    borderRadius: 10,
+  },
+  removeButtonText: {
+    color: "red",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 12,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 3,
   },
 });
 
